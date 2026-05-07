@@ -77,8 +77,7 @@ export async function POST(req: NextRequest) {
       success: true 
     })
 
-  } catch (error) {
-    console.error("[CHAT_API_ERROR]", error)
+  } catch {
     return NextResponse.json(
       { success: false, message: "Chat service is temporarily unavailable" },
       { status: 500 }
