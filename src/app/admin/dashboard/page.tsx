@@ -1,3 +1,5 @@
+'use client'
+
 import { useState, useEffect } from 'react'
 import ImageUpload from '@/components/admin/ImageUpload'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
