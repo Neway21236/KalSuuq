@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db";
-import { Prisma } from "@prisma/client";
+
+type TxClient = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -27,7 +28,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     }
 
     // Save to production database via Prisma in an Atomic Transaction
-    await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+    await prisma.$transaction(async (tx: TxClient) => {
       // Restock items
       for (const item of order.items) {
         await tx.product.update({
@@ -71,8 +72,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       message: `Order cancelled. Items restocked.${order.paymentStatus === "PAID" ? " Refund initiated via Chapa." : ""}`
     });
 
-  } catch (error) {
-    console.error("[CANCEL_ORDER_ERROR]", error);
+  } catch {
     return NextResponse.json({ success: false, message: "Server error during cancellation" }, { status: 500 });
   }
 }

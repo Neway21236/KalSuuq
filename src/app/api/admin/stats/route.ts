@@ -36,8 +36,7 @@ export async function GET(req: NextRequest) {
         lowStockCount
       }
     });
-  } catch (error) {
-    console.error("[ADMIN_STATS_GET]", error);
+  } catch {
     return NextResponse.json({ success: false, error: "Internal Server Error" }, { status: 500 });
   }
 }

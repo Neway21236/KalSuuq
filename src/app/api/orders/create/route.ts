@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db";
-import { Prisma } from "@prisma/client";
 import { logger } from "@/lib/logger";
 import { checkRateLimit } from "@/lib/rate-limit";
+
+type TxClient = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
 
 interface CartItem {
   productId: string;
@@ -92,7 +93,7 @@ export async function POST(req: NextRequest) {
     secureServerTotal += (deliveryFee || 0) + (paymentMethod === 'cod' ? 100 : 0);
 
     // Save to production database via Prisma in an Atomic Transaction
-    const order = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+    const order = await prisma.$transaction(async (tx: TxClient) => {
       // 1. Double check stock inside the transaction lock
       for (const item of items) {
         const product = await tx.product.findUnique({
@@ -184,7 +185,7 @@ export async function POST(req: NextRequest) {
       if (!checkoutUrl) {
         logger.fatal({ action: 'chapa_completely_failed', orderId, error: new Error("Payment Gateway Offline") });
         
-        await prisma.$transaction(async (tx) => {
+        await prisma.$transaction(async (tx: TxClient) => {
           for (const item of items) {
             await tx.product.update({
               where: { id: item.productId },
