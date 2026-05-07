@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db";
+import { Prisma } from "@prisma/client";
+import { logger } from "@/lib/logger";
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
   try {
@@ -25,8 +27,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
       return NextResponse.json({ success: false, message: "Order is already cancelled" }, { status: 400 });
     }
 
-    // 2. Process Cancellation and Restock Atomically
-    await prisma.$transaction(async (tx) => {
+    // Save to production database via Prisma in an Atomic Transaction
+    await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // Restock items
       for (const item of order.items) {
         await tx.product.update({
