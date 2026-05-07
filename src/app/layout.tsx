@@ -1,15 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, DM_Sans, DM_Mono, Noto_Sans_Ethiopic } from 'next/font/google'
 import "./globals.css";
-import AnnouncementBar from "@/components/layout/AnnouncementBar";
-import Navbar from "@/components/layout/Navbar";
-import Footer from "@/components/layout/Footer";
-import CartDrawer from "@/components/layout/CartDrawer";
-import AIChatWidget from "@/components/layout/AIChatWidget";
+import GlobalUI, { GlobalFooter } from "@/components/layout/GlobalUI";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { ToastProvider } from "@/components/ui/Toast";
 import { ErrorBoundary } from "@/components/providers/ErrorBoundary";
-import CookieBanner from "@/components/layout/CookieBanner";
 
 const cormorant = Cormorant_Garamond({
   subsets: ['latin'],
@@ -89,13 +84,9 @@ export default function RootLayout({
         >
           <ToastProvider>
             <ErrorBoundary>
-              <AnnouncementBar />
-              <Navbar />
-              <CartDrawer />
-              <AIChatWidget />
-              <CookieBanner />
+              <GlobalUI />
               <main className="flex-grow relative">{children}</main>
-              <Footer />
+              <GlobalFooter />
             </ErrorBoundary>
           </ToastProvider>
         </ThemeProvider>

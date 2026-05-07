@@ -1,6 +1,6 @@
 'use client'
 
-import Image from 'next/image'
+import CloudImage from '@/components/ui/CloudImage'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { useLanguageStore } from '@/store/useLanguageStore'
@@ -43,7 +43,7 @@ export default function ProductCard({ product, className }: ProductCardProps) {
     >
       {/* Image Area */}
       <div className="aspect-[3/4] overflow-hidden relative">
-        <Image 
+        <CloudImage 
           src={product.image}
           alt={product.name}
           fill
