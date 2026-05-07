@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     const orderId = payload.tx_ref;
 
     // Fire-and-forget: process asynchronously without blocking the HTTP response
-    processPaymentConfirmation(orderId).catch((err) => {
+    processPaymentConfirmation(orderId).catch((err: unknown) => {
       logger.fatal({ 
         action: 'webhook_async_processing_failed', 
         orderId, 
