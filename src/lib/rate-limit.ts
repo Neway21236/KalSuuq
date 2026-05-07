@@ -19,11 +19,11 @@ const rateLimitMap = new Map<string, RateLimitEntry>();
 // Auto-cleanup stale entries every 5 minutes
 setInterval(() => {
   const now = Date.now();
-  for (const [key, entry] of rateLimitMap.entries()) {
+  rateLimitMap.forEach((entry, key) => {
     if (now > entry.resetTime) {
       rateLimitMap.delete(key);
     }
-  }
+  });
 }, 5 * 60 * 1000);
 
 export interface RateLimitConfig {

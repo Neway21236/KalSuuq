@@ -33,8 +33,7 @@ export async function POST(req: NextRequest) {
       applicationId: application.id,
       message: "Application submitted successfully. We'll contact you within 24 hours.",
     });
-  } catch (error) {
-    console.error("[PARTNER_APPLY_POST]", error);
+  } catch {
     return NextResponse.json(
       { success: false, message: "Server error during application" },
       { status: 500 }
