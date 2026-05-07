@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db";
+import { Prisma } from "@prisma/client";
 import { logger } from "@/lib/logger";
 import { checkRateLimit } from "@/lib/rate-limit";
 
@@ -91,7 +92,7 @@ export async function POST(req: NextRequest) {
     secureServerTotal += (deliveryFee || 0) + (paymentMethod === 'cod' ? 100 : 0);
 
     // Save to production database via Prisma in an Atomic Transaction
-    const order = await prisma.$transaction(async (tx) => {
+    const order = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // 1. Double check stock inside the transaction lock
       for (const item of items) {
         const product = await tx.product.findUnique({
