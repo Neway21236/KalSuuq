@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import ImageUpload from '@/components/admin/ImageUpload'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { 
@@ -76,30 +77,50 @@ export default function AdminDashboard() {
           <div className="space-y-8">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {kpis.map((kpi, i) => (
-                <div key={i} className="bg-surface-card border border-border-light p-6 space-y-4">
+                <div key={i} className="bg-surface-card border border-border-primary p-6 space-y-4">
                   <div className="flex justify-between items-start">
-                    <span className="text-[10px] text-text-dark-muted uppercase font-bold tracking-widest">{kpi.label}</span>
+                    <span className="text-[10px] text-text-muted uppercase font-bold tracking-widest">{kpi.label}</span>
                     {kpi.status === 'warning' && <AlertCircle size={14} className="text-warning" />}
                     {kpi.status === 'error' && <AlertCircle size={14} className="text-error" />}
                   </div>
                   <div className="flex items-baseline space-x-1">
-                    {kpi.unit && <span className="text-xs text-text-dark-muted font-mono">{kpi.unit}</span>}
-                    <span className="text-xl md:text-2xl font-mono font-bold text-text-dark">{kpi.value}</span>
+                    {kpi.unit && <span className="text-xs text-text-muted font-mono">{kpi.unit}</span>}
+                    <span className="text-xl md:text-2xl font-mono font-bold text-text-primary">{kpi.value}</span>
                   </div>
                 </div>
               ))}
             </div>
 
-            <div className="bg-surface-card border border-border-light p-8 md:p-12 text-center overflow-x-auto">
-              <BarChart3 size={48} className="mx-auto text-text-dark-muted opacity-20 mb-4" />
-              <p className="text-text-dark-muted text-xs uppercase tracking-widest font-bold">Analytics Engine Active</p>
+            <div className="bg-surface-card border border-border-primary p-8 md:p-12 text-center overflow-x-auto">
+              <BarChart3 size={48} className="mx-auto text-text-muted opacity-20 mb-4" />
+              <p className="text-text-muted text-xs uppercase tracking-widest font-bold">Analytics Engine Active</p>
+            </div>
+          </div>
+        )
+      case 'products':
+        return (
+          <div className="space-y-8">
+            <div className="flex justify-between items-center mb-8">
+              <h2 className="text-2xl font-display font-bold">Manage Products</h2>
+              <button className="bg-accent text-white px-4 py-2 font-bold text-sm tracking-widest uppercase">Add New Product</button>
+            </div>
+            
+            <div className="bg-surface-card border border-border-primary p-6 space-y-6">
+              <h3 className="font-bold text-lg border-b border-border-primary pb-4">Product Media</h3>
+              <p className="text-text-muted text-sm">Upload high-quality images for your products. Images are automatically optimized and served globally via Cloudinary.</p>
+              
+              <ImageUpload 
+                value={[]} 
+                onChange={() => alert('Image uploaded! Logic can be hooked to state.')} 
+                onRemove={() => {}} 
+              />
             </div>
           </div>
         )
       default:
         return (
-          <div className="bg-surface-card border border-border-light p-12 md:p-20 text-center">
-            <p className="text-text-dark-muted uppercase tracking-widest text-xs font-bold">Module Loading...</p>
+          <div className="bg-surface-card border border-border-primary p-12 md:p-20 text-center">
+            <p className="text-text-muted uppercase tracking-widest text-xs font-bold">Module Loading...</p>
           </div>
         )
     }
@@ -155,7 +176,7 @@ export default function AdminDashboard() {
           ))}
         </nav>
 
-        <div className="p-4 border-t border-border-dark mt-auto">
+        <div className="p-4 border-t border-border-primary mt-auto">
           <button 
             onClick={() => {
               document.cookie = "kalsuq-auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
@@ -171,27 +192,27 @@ export default function AdminDashboard() {
 
       {/* Main Content */}
       <div className="flex-1 md:ml-64 flex flex-col min-h-screen transition-all duration-300 w-full">
-        <header className="h-16 bg-surface border-b border-border-light sticky top-0 z-20 px-4 md:px-8 flex items-center justify-between">
+        <header className="h-16 bg-surface border-b border-border-primary sticky top-0 z-20 px-4 md:px-8 flex items-center justify-between">
           <div className="flex items-center gap-4 flex-1">
             <button 
-              className="md:hidden text-text-dark hover:text-accent transition-colors"
+              className="md:hidden text-text-primary hover:text-accent transition-colors"
               onClick={() => setIsSidebarOpen(true)}
             >
               <Menu size={24} />
             </button>
-            <div className="hidden sm:flex items-center bg-surface-card border border-border-light px-4 py-1.5 max-w-sm w-full">
-              <Search size={16} className="text-text-dark-muted mr-3" />
+            <div className="hidden sm:flex items-center bg-surface-card border border-border-primary px-4 py-1.5 max-w-sm w-full">
+              <Search size={16} className="text-text-muted mr-3" />
               <input 
                 type="text" 
                 placeholder="Search..." 
-                className="bg-transparent border-none text-sm text-text-dark focus:ring-0 w-full placeholder:text-text-dark-muted"
+                className="bg-transparent border-none text-sm text-text-primary focus:ring-0 w-full placeholder:text-text-muted"
               />
             </div>
           </div>
           <div className="flex items-center space-x-6">
             <div className="text-right hidden sm:block">
-              <p className="text-xs font-bold text-text-dark">Abebe Admin</p>
-              <p className="text-[9px] text-text-dark-muted uppercase font-bold tracking-widest">Super Admin</p>
+              <p className="text-xs font-bold text-text-primary">Abebe Admin</p>
+              <p className="text-[9px] text-text-muted uppercase font-bold tracking-widest">Super Admin</p>
             </div>
           </div>
         </header>
