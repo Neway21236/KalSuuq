@@ -63,8 +63,17 @@ export async function POST(req: NextRequest) {
       select: { id: true, price: true, inStock: true }
     });
 
+    interface OrderItemInput {
+      productId: string;
+      name: string;
+      quantity: number;
+      price: number;
+      size: string;
+      colour: string;
+    }
+
     let secureServerTotal = 0;
-    const secureItemsToCreate = [];
+    const secureItemsToCreate: OrderItemInput[] = [];
 
     for (const item of items) {
       const dbProduct = dbProducts.find(p => p.id === item.productId);
@@ -174,7 +183,7 @@ export async function POST(req: NextRequest) {
             logger.error({ action: 'chapa_init_failed', orderId, error: new Error(chapaData.message || 'Chapa Init Failed'), metadata: chapaData });
             retries--;
           }
-        } catch (err) {
+        } catch (err: unknown) {
           logger.error({ action: 'chapa_network_error', orderId, error: err instanceof Error ? err : new Error(String(err)), metadata: { retriesLeft: retries - 1 } });
           retries--;
           if (retries > 0) await new Promise(res => setTimeout(res, 1000)); // wait 1s before retry
