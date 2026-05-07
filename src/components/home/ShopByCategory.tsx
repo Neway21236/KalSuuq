@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import Image from 'next/image'
+import CloudImage from '@/components/ui/CloudImage'
 import { useLanguageStore } from '@/store/useLanguageStore'
 import { cn } from '@/lib/utils'
 
@@ -9,19 +9,19 @@ const categories = [
   { 
     name: 'Shoes', 
     nameAm: 'ጫማዎች',
-    image: '/cat-shoes.png', 
+    image: 'https://res.cloudinary.com/demo/image/upload/v1689260144/samples/ecommerce/shoes.jpg', 
     href: '/shop?category=shoes' 
   },
   { 
     name: 'Clothes', 
     nameAm: 'ልብሶች',
-    image: '/cat-clothes.png', 
+    image: 'https://res.cloudinary.com/demo/image/upload/v1689260144/samples/ecommerce/leather-bag-gray.jpg', // Replace with clothes image later if needed, using cloudinary demo for now
     href: '/shop?category=clothes' 
   },
   { 
     name: 'Accessories', 
     nameAm: 'መለዋወጫዎች',
-    image: '/cat-accessories.png', 
+    image: 'https://res.cloudinary.com/demo/image/upload/v1689260144/samples/ecommerce/accessories-bag.jpg', 
     href: '/shop?category=accessories' 
   },
 ]
@@ -58,10 +58,11 @@ export default function ShopByCategory() {
               href={cat.href}
               className="group relative aspect-[3/4] overflow-hidden bg-surface-card border border-border-primary shadow-sm hover:shadow-2xl transition-all duration-700 hover:-translate-y-2"
             >
-              <Image 
+              <CloudImage 
                 src={cat.image}
                 alt={cat.name}
                 fill
+                sizes="(max-width: 768px) 100vw, 33vw"
                 className="object-cover transition-transform duration-1000 group-hover:scale-110"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-ink/90 via-ink/30 to-transparent" />
