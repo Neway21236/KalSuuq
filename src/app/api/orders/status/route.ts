@@ -59,7 +59,7 @@ export async function GET(req: NextRequest) {
         createdAt: order.createdAt,
       },
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { success: false, message: "Server error retrieving order" },
       { status: 500 }

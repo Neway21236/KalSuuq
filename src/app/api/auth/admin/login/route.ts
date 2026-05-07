@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/db";
 
 // In a real production app, we'd use bcrypt for password hashing
 // For this prototype launch, we use a controlled admin check
@@ -16,7 +15,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Rate Limiting / Brute Force Prevention
-    const ip = req.headers.get("x-forwarded-for") || req.ip || "unknown";
+    const ip = req.headers.get("x-forwarded-for") || "unknown";
     console.log(`[AUTH] Admin login attempt from IP: ${ip} for email: ${email}`);
 
     // Master Admin Credentials for Testing
@@ -46,7 +45,7 @@ export async function POST(req: NextRequest) {
       { success: false, message: "Invalid credentials" },
       { status: 401 }
     );
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { success: false, message: "Server error during login" },
       { status: 500 }

@@ -6,7 +6,7 @@ interface LogPayload {
   action: string;
   userId?: string;
   orderId?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   error?: Error | unknown;
 }
 
@@ -15,8 +15,8 @@ interface LogPayload {
  * Automatically redacts emails, phone numbers, and names from log metadata
  * to prevent GDPR/CCPA violations when logs ship to Sentry/Datadog.
  */
-function scrubPII(obj: Record<string, any>): Record<string, any> {
-  const scrubbed: Record<string, any> = {};
+function scrubPII(obj: Record<string, unknown>): Record<string, unknown> {
+  const scrubbed: Record<string, unknown> = {};
   const sensitiveKeys = ['email', 'phone', 'name', 'customerName', 'customerPhone', 'customerEmail', 'address', 'password'];
   
   for (const [key, value] of Object.entries(obj)) {
@@ -28,7 +28,7 @@ function scrubPII(obj: Record<string, any>): Record<string, any> {
         .replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, '[EMAIL_REDACTED]')
         .replace(/\+?\d{10,13}/g, '[PHONE_REDACTED]');
     } else if (typeof value === 'object' && value !== null && !(value instanceof Error)) {
-      scrubbed[key] = scrubPII(value);
+      scrubbed[key] = scrubPII(value as Record<string, unknown>);
     } else {
       scrubbed[key] = value;
     }

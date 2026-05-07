@@ -12,17 +12,23 @@ import {
   LogOut,
   TrendingUp,
   DollarSign,
-  Copy,
-  MessageCircle,
-  Send
+  Copy
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useToast } from '@/components/ui/Toast'
 
+interface PartnerStats {
+  clicks: number;
+  orders: number;
+  pendingCommission: number;
+  confirmedCommission: number;
+  nextPayout: string;
+  referralCode: string;
+}
+
 export default function PartnerDashboard() {
   const [activeTab, setActiveTab] = useState('dashboard')
-  const [stats, setStats] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
+  const [stats, setStats] = useState<PartnerStats | null>(null)
   const router = useRouter()
   const { toast } = useToast()
 
@@ -36,8 +42,6 @@ export default function PartnerDashboard() {
         }
       } catch (err) {
         console.error("Failed to fetch partner stats:", err)
-      } finally {
-        setLoading(false)
       }
     }
     fetchStats()

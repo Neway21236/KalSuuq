@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
         totalOrders,
         revenueToday: totalRevenue._sum.total || 0,
         pendingPartners,
-        lowStockCount: 4 // Placeholder for stock threshold logic
+        lowStockCount
       }
     });
   } catch (error) {

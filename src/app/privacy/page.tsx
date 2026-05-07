@@ -18,7 +18,7 @@ export default function PrivacyPolicy() {
           <section className="space-y-4">
             <h2 className="text-2xl font-bold font-display text-accent">1. Introduction</h2>
             <p>
-              At Kalsuq ("we," "our," or "us"), your privacy is our priority. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website or make a purchase. By using our services, you consent to the data practices described in this policy, adhering to data minimization principles under GDPR and CCPA.
+              At Kalsuq (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;), your privacy is our priority. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website or make a purchase. By using our services, you consent to the data practices described in this policy, adhering to data minimization principles under GDPR and CCPA.
             </p>
           </section>
 
@@ -40,7 +40,7 @@ export default function PrivacyPolicy() {
               <li>Process and deliver your orders.</li>
               <li>Communicate order status via WhatsApp or Email.</li>
               <li>Prevent fraud and ensure platform security.</li>
-              <li>Comply with legal obligations.</li>
+              <li>Analyze store performance (anonymous data only).</li>
             </ul>
           </section>
 
@@ -58,7 +58,7 @@ export default function PrivacyPolicy() {
             <p>Depending on your location, you have the right to:</p>
             <ul className="list-disc pl-5 space-y-2 text-text-secondary">
               <li>Access the personal data we hold about you.</li>
-              <li>Request the deletion of your personal data ("Right to be Forgotten").</li>
+              <li>Request the deletion of your personal data (&quot;Right to be Forgotten&quot;).</li>
               <li>Opt-out of marketing communications.</li>
             </ul>
             <p className="mt-4 text-sm font-bold bg-accent/10 p-4 border-l-4 border-accent">
