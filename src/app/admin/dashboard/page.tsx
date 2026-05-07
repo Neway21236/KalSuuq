@@ -57,8 +57,8 @@ export default function AdminDashboard() {
   const kpis = [
     { label: 'Orders Today', value: stats?.totalOrders ?? '...', trend: '+12%' },
     { label: 'Revenue Today', value: stats?.revenueToday?.toLocaleString() ?? '...', unit: 'ETB', trend: '+8%' },
-    { label: 'Pending Partners', value: stats?.pendingPartners ?? '...', status: stats?.pendingPartners > 0 ? 'warning' : 'success' },
-    { label: 'Low Stock Alerts', value: '4', status: 'error' },
+    { label: 'Pending Partners', value: stats?.pendingPartners ?? '...', status: (stats?.pendingPartners ?? 0) > 0 ? 'warning' : 'success' },
+    { label: 'Low Stock Alerts', value: stats?.lowStockCount ?? '...', status: (stats?.lowStockCount ?? 0) > 0 ? 'error' : 'success' },
   ]
 
   const renderContent = () => {

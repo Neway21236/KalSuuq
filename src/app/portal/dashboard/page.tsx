@@ -58,8 +58,8 @@ export default function PartnerDashboard() {
   const statItems = [
     { label: 'Clicks', value: stats?.clicks ?? '...', icon: TrendingUp },
     { label: 'Orders', value: stats?.orders ?? '...', icon: ShoppingBag },
-    { label: 'Pending Commission', value: stats?.pendingCommission.toLocaleString() ?? '...', icon: DollarSign, unit: 'ETB' },
-    { label: 'Confirmed Commission', value: stats?.confirmedCommission.toLocaleString() ?? '...', icon: DollarSign, unit: 'ETB' },
+    { label: 'Pending Commission', value: stats?.pendingCommission?.toLocaleString() ?? '...', icon: DollarSign, unit: 'ETB' },
+    { label: 'Confirmed Commission', value: stats?.confirmedCommission?.toLocaleString() ?? '...', icon: DollarSign, unit: 'ETB' },
   ]
 
   const renderContent = () => {
@@ -95,8 +95,10 @@ export default function PartnerDashboard() {
                         <span className="font-mono text-xl text-accent font-bold">{stats?.referralCode || '...'}</span>
                         <button 
                           onClick={() => {
-                            navigator.clipboard.writeText(stats?.referralCode)
-                            toast('Code copied', 'success')
+                            if (stats?.referralCode) {
+                              navigator.clipboard.writeText(stats.referralCode)
+                              toast('Code copied', 'success')
+                            }
                           }}
                           className="text-text-muted hover:text-accent transition-colors"
                         >
