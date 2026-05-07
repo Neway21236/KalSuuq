@@ -29,7 +29,8 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { items, deliveryZone, paymentMethod, deliveryFee } = body;
+    const items: CartItem[] = body.items;
+    const { deliveryZone, paymentMethod, deliveryFee } = body;
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       logger.warn({ action: 'checkout_failed', metadata: { reason: 'Empty cart' } });
@@ -75,8 +76,14 @@ export async function POST(req: NextRequest) {
     let secureServerTotal = 0;
     const secureItemsToCreate: OrderItemInput[] = [];
 
+    interface DbProduct {
+      id: string;
+      price: number;
+      inStock: boolean;
+    }
+
     for (const item of items) {
-      const dbProduct = dbProducts.find(p => p.id === item.productId);
+      const dbProduct = (dbProducts as DbProduct[]).find(p => p.id === item.productId);
       
       if (!dbProduct) {
         return NextResponse.json({ success: false, message: `Product ${item.productId} not found` }, { status: 400 });

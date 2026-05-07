@@ -20,8 +20,7 @@ export async function GET() {
     response.headers.set('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
     
     return response;
-  } catch (error) {
-    console.error("[PRODUCTS_GET]", error);
+  } catch {
     return NextResponse.json(
       { success: false, error: "Internal Server Error" },
       { status: 500 }
