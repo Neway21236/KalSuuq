@@ -31,7 +31,7 @@ export default function AdminLoginPage() {
       } else {
         toast(data.message || 'Invalid credentials', 'error')
       }
-    } catch (err) {
+    } catch {
       toast('Failed to connect to server', 'error')
     } finally {
       setIsLoading(false)

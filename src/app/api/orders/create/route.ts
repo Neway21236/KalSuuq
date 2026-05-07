@@ -3,6 +3,15 @@ import prisma from "@/lib/db";
 import { logger } from "@/lib/logger";
 import { checkRateLimit } from "@/lib/rate-limit";
 
+interface CartItem {
+  productId: string;
+  name?: string;
+  quantity: number;
+  size: string;
+  colour: string;
+  unitPrice: number;
+}
+
 export async function POST(req: NextRequest) {
   try {
     // Risk #2 Fix: Rate Limiting to prevent inventory denial-of-service
@@ -46,7 +55,7 @@ export async function POST(req: NextRequest) {
     const orderId = `KS-${Date.now().toString(36).toUpperCase()}-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
 
     // Secure Price & Stock Validation
-    const productIds = items.map((i: any) => i.productId);
+    const productIds = items.map((i: CartItem) => i.productId);
     const dbProducts = await prisma.product.findMany({
       where: { id: { in: productIds } },
       select: { id: true, price: true, inStock: true }
@@ -164,7 +173,7 @@ export async function POST(req: NextRequest) {
             retries--;
           }
         } catch (err) {
-          logger.error({ action: 'chapa_network_error', orderId, error: err, metadata: { retriesLeft: retries - 1 } });
+          logger.error({ action: 'chapa_network_error', orderId, error: err instanceof Error ? err : new Error(String(err)), metadata: { retriesLeft: retries - 1 } });
           retries--;
           if (retries > 0) await new Promise(res => setTimeout(res, 1000)); // wait 1s before retry
         }
@@ -205,8 +214,8 @@ export async function POST(req: NextRequest) {
         ? "Redirecting to secure payment gateway..." 
         : "Order confirmed. You will receive a WhatsApp confirmation shortly.",
     });
-  } catch (error: any) {
-    if (error.message && error.message.includes("INSUFFICIENT_STOCK")) {
+  } catch (error: unknown) {
+    if (error instanceof Error && error.message && error.message.includes("INSUFFICIENT_STOCK")) {
       logger.warn({ action: 'oversell_prevented', metadata: { details: error.message } });
       return NextResponse.json(
         { success: false, message: `Oversell prevented. ${error.message.split(":")[1].trim()} is out of stock.` },
@@ -214,7 +223,7 @@ export async function POST(req: NextRequest) {
       );
     }
     
-    logger.error({ action: 'checkout_fatal_error', error });
+    logger.error({ action: 'checkout_fatal_error', error: error instanceof Error ? error : new Error(String(error)) });
     return NextResponse.json(
       { success: false, message: "Invalid request body or server error" },
       { status: 400 }

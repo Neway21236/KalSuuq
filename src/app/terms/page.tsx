@@ -27,7 +27,7 @@ export default function TermsOfService() {
             <ul className="list-disc pl-5 space-y-2 text-text-secondary">
               <li>All products are subject to availability. We reserve the right to discontinue any products at any time for any reason.</li>
               <li>Prices for our products are subject to change without notice.</li>
-              <li>We make every effort to display as accurately as possible the colors and images of our products. However, we cannot guarantee that your computer monitor's display of any color will be accurate.</li>
+              <li>We make every effort to display as accurately as possible the colors and images of our products. However, we cannot guarantee that your computer monitor&apos;s display of any color will be accurate.</li>
             </ul>
           </section>
 

@@ -17,9 +17,16 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
+interface AdminStats {
+  totalOrders: number;
+  revenueToday: number;
+  pendingPartners: number;
+  lowStockCount: number;
+}
+
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('dashboard')
-  const [stats, setStats] = useState<any>(null)
+  const [stats, setStats] = useState<AdminStats | null>(null)
   const router = useRouter()
 
   useEffect(() => {

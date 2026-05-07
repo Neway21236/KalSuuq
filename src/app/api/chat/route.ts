@@ -17,7 +17,7 @@ const KNOWLEDGE_BASE = {
 
 export async function POST(req: NextRequest) {
   try {
-    const { message, history } = await req.json()
+    const { message } = await req.json()
     
     // Security Check: Input validation and Sanitization
     if (!message || typeof message !== 'string' || message.length > 500) {
