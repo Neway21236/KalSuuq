@@ -1,0 +1,15 @@
+{
+  "Common": {
+    "shop": "Shop",
+    "about": "About",
+    "contact": "Contact",
+    "partners": "Partners",
+    "cart": "Cart",
+    "checkout": "Checkout"
+  },
+  "Hero": {
+    "title": "Fashion that moves with you.",
+    "subtitle": "Curated pieces designed for movement, elegance, and the modern Ethiopian spirit.",
+    "cta": "Shop New Arrivals"
+  }
+}

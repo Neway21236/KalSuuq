@@ -1,0 +1,72 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* --- LIGHT MODE --- */
+  --ink:            #120C0A;
+  --ink-card:       #1B120F;   
+  --surface:        #FAF9F6;
+  --surface-card:   #FFFFFF;
+  --espresso:       #1A120D;   
+
+  /* Accent — the gold */
+  --accent:         #D89F69;   
+  --accent-light:   #F2D5B3;   
+  --accent-hover:   #C88A55;   
+  --accent-muted:   #EAC89E;   
+
+  /* Text on light backgrounds */
+  --text-primary:   #1A120D;   
+  --text-secondary: #4A3F35;   
+  --text-muted:     #8C7E71;   
+
+  /* Borders */
+  --border-primary: rgba(26, 18, 13, 0.08);
+  --border-accent:  rgba(216, 159, 105, 0.20);
+
+  /* Semantic */
+  --success:        #2D6A4F;
+  --error:          #C0392B;
+  --warning:        #D89F69;
+}
+
+.dark {
+  /* --- DARK MODE (Espresso & Gold) --- */
+  --surface:        #120C0A;
+  --surface-card:   #1B120F;
+  --ink:            #F8F5F2;
+  --ink-card:       #FDFCFB;
+
+  /* Text on dark backgrounds */
+  --text-primary:   #F8F5F2;
+  --text-secondary: #BDA792;
+  --text-muted:     #6B5A4D;
+
+  /* Borders */
+  --border-primary: rgba(255, 255, 255, 0.08);
+  --border-accent:  rgba(216, 159, 105, 0.30);
+}
+
+@layer base {
+  body {
+    font-family: var(--font-body), sans-serif;
+    background-color: var(--surface);
+    color: var(--text-primary);
+    line-height: 1.7;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display), serif;
+    color: var(--text-primary);
+  }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Hide scrollbar utility */
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+}
