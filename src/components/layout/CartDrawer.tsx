@@ -13,13 +13,36 @@ export default function CartDrawer() {
   const hydrated = useHasHydrated()
   const { language } = useLanguageStore()
   const { 
-    items, 
-    isOpen, 
-    closeCart, 
-    updateQuantity, 
+    items,
+    isOpen,
+    closeCart,
+    updateQuantity,
     removeItem, 
-    getSubtotal 
+    getSubtotal,
+    referralCode 
   } = useCartStore()
+  const [upsellProducts, setUpsellProducts] = useState<any[]>([])
+
+  useEffect(() => {
+    const fetchUpsell = async () => {
+      try {
+        const res = await fetch('/api/products')
+        const data = await res.json()
+        if (data.success) {
+          // Get 3 random products that are NOT in the cart
+          const inCartIds = items.map(i => i.productId)
+          const available = data.products.filter((p: any) => !inCartIds.includes(p.id))
+          setUpsellProducts(available.slice(0, 3))
+        }
+      } catch (err) {
+        console.error("Upsell fetch failed", err)
+      }
+    }
+    if (isOpen) fetchUpsell()
+  }, [isOpen, items])
+
+  const discount = referralCode ? getSubtotal() * 0.1 : 0 // 10% discount for referral codes for now
+  const finalTotal = getSubtotal() - discount
 
   // Risk #4 Fix: Don't render cart contents until client-side hydration is complete
   if (!hydrated) return null
@@ -162,6 +185,38 @@ export default function CartDrawer() {
                       </div>
                     </motion.div>
                   ))}
+              )}
+
+              {/* Upsell Row - FR-CART-05 */}
+              {items.length > 0 && upsellProducts.length > 0 && (
+                <div className="pt-12 border-t border-border-primary/50 mt-12">
+                  <h4 className={cn(
+                    "text-[10px] font-bold uppercase tracking-[0.4em] text-accent mb-8",
+                    language === 'am' && "font-ethiopic tracking-normal text-xs"
+                  )}>
+                    {language === 'en' ? 'You may also like' : 'እነዚህንም ሊወዱ ይችላሉ'}
+                  </h4>
+                  <div className="grid grid-cols-3 gap-6">
+                    {upsellProducts.map((product) => (
+                      <Link 
+                        key={product.id} 
+                        href={`/shop/${product.slug}`}
+                        onClick={closeCart}
+                        className="group space-y-4"
+                      >
+                        <div className="relative aspect-[3/4] bg-surface-card border border-border-primary overflow-hidden shadow-lg transition-all duration-500 group-hover:border-accent/40 group-hover:shadow-accent/10">
+                          <Image src={product.image} alt={product.name} fill className="object-cover transition-transform duration-700 group-hover:scale-110" />
+                        </div>
+                        <div className="space-y-1">
+                          <h5 className={cn(
+                            "text-[10px] font-bold text-text-primary truncate",
+                            language === 'am' && "font-ethiopic"
+                          )}>{product.name}</h5>
+                          <p className="text-[10px] font-mono font-bold text-accent">ETB {product.price.toLocaleString()}</p>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
@@ -169,16 +224,47 @@ export default function CartDrawer() {
             {/* Footer */}
             {items.length > 0 && (
               <div className="p-12 border-t border-border-primary space-y-10 bg-surface-card/50 backdrop-blur-2xl shadow-[0_-30px_60px_rgba(0,0,0,0.1)]">
-                <div className="flex justify-between items-center">
-                  <span className={cn(
-                    "text-[10px] text-text-secondary uppercase tracking-[0.6em] font-bold",
-                    language === 'am' && "font-ethiopic tracking-normal text-xs"
-                  )}>
-                    {language === 'en' ? 'Bag Subtotal' : 'ጠቅላላ ድምር'}
-                  </span>
-                  <span className="text-5xl text-text-primary font-display font-bold tracking-tighter">
-                    ETB {getSubtotal().toLocaleString()}
-                  </span>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className={cn(
+                      "text-[10px] text-text-secondary uppercase tracking-[0.6em] font-bold",
+                      language === 'am' && "font-ethiopic tracking-normal text-xs"
+                    )}>
+                      {language === 'en' ? 'Subtotal' : 'ድምር'}
+                    </span>
+                    <span className="text-xl text-text-primary font-mono font-bold">
+                      ETB {getSubtotal().toLocaleString()}
+                    </span>
+                  </div>
+
+                  {referralCode && (
+                    <div className="flex justify-between items-center text-success animate-in slide-in-from-right-2 duration-500">
+                      <div className="flex items-center space-x-2">
+                        <span className="w-2 h-2 bg-success rounded-full animate-pulse" />
+                        <span className={cn(
+                          "text-[10px] uppercase tracking-[0.4em] font-bold",
+                          language === 'am' && "font-ethiopic tracking-normal text-xs"
+                        )}>
+                          {language === 'en' ? 'Discount' : 'ቅናሽ'} ({referralCode})
+                        </span>
+                      </div>
+                      <span className="text-xl font-mono font-bold">
+                        - ETB {discount.toLocaleString()}
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="flex justify-between items-center pt-4 border-t border-border-primary/50">
+                    <span className={cn(
+                      "text-[10px] text-text-primary uppercase tracking-[0.6em] font-bold",
+                      language === 'am' && "font-ethiopic tracking-normal text-xs"
+                    )}>
+                      {language === 'en' ? 'Total' : 'ጠቅላላ'}
+                    </span>
+                    <span className="text-4xl text-text-primary font-display font-bold tracking-tighter">
+                      ETB {finalTotal.toLocaleString()}
+                    </span>
+                  </div>
                 </div>
                 <div className="space-y-6">
                   <Link
