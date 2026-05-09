@@ -22,7 +22,15 @@ export default function CartDrawer() {
     getSubtotal,
     referralCode 
   } = useCartStore()
-  const [upsellProducts, setUpsellProducts] = useState<any[]>([])
+  interface Product {
+    id: string;
+    name: string;
+    slug: string;
+    price: number;
+    image: string;
+  }
+
+  const [upsellProducts, setUpsellProducts] = useState<Product[]>([])
 
   useEffect(() => {
     const fetchUpsell = async () => {
@@ -32,7 +40,7 @@ export default function CartDrawer() {
         if (data.success) {
           // Get 3 random products that are NOT in the cart
           const inCartIds = items.map(i => i.productId)
-          const available = data.products.filter((p: any) => !inCartIds.includes(p.id))
+          const available = data.products.filter((p: Product) => !inCartIds.includes(p.id))
           setUpsellProducts(available.slice(0, 3))
         }
       } catch (err) {

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ChevronRight, Check, ShieldCheck, MapPin, ShoppingBag } from 'lucide-react'
+import { ChevronRight, Check, ShieldCheck, ShoppingBag } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useCartStore } from '@/store/useCartStore'
 import { useLanguageStore } from '@/store/useLanguageStore'
@@ -33,7 +33,7 @@ export default function CheckoutPage() {
   const [region, setRegion] = useState('')
   const [town, setTown] = useState('')
   const [addressLine, setAddressLine] = useState('')
-  const [marketingConsent, setMarketingConsent] = useState(false)
+  const [showSummaryMobile, setShowSummaryMobile] = useState(false)
 
   // Risk #10 Fix: Ghost Order Recovery
   // Check if the user returned from a Chapa payment with a pending order
