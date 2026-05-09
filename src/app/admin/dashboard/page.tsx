@@ -40,23 +40,61 @@ const revenueData = [
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('dashboard')
   const [stats, setStats] = useState<AdminStats | null>(null)
+  const [products, setProducts] = useState<any[]>([])
+  const [orders, setOrders] = useState<any[]>([])
+  const [partners, setPartners] = useState<any[]>([])
+  const [isAddingProduct, setIsAddingProduct] = useState(false)
+  const [newProduct, setNewProduct] = useState({ name: '', category: '', price: '', stockQuantity: '', description: '', image: '', collection: 'General' })
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchData = async () => {
       try {
-        const res = await fetch('/api/admin/stats')
-        const data = await res.json()
-        if (data.success) {
-          setStats(data.stats)
+        if (activeTab === 'dashboard') {
+          const res = await fetch('/api/admin/stats');
+          const data = await res.json();
+          if (data.success) setStats(data.stats);
+        } else if (activeTab === 'products' && products.length === 0) {
+          const res = await fetch('/api/admin/products');
+          const data = await res.json();
+          if (data.success) setProducts(data.products);
+        } else if (activeTab === 'orders' && orders.length === 0) {
+          const res = await fetch('/api/admin/orders');
+          const data = await res.json();
+          if (data.success) setOrders(data.orders);
+        } else if (activeTab === 'partners' && partners.length === 0) {
+          const res = await fetch('/api/admin/partners');
+          const data = await res.json();
+          if (data.success) setPartners(data.partners);
         }
       } catch (err) {
-        console.error("Failed to fetch admin stats:", err)
+        console.error("Failed to fetch admin data:", err);
       }
+    };
+    fetchData();
+  }, [activeTab]);
+
+  const handleAddProduct = async () => {
+    try {
+      const res = await fetch('/api/admin/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newProduct)
+      });
+      const data = await res.json();
+      if (data.success) {
+        setProducts([data.product, ...products]);
+        setIsAddingProduct(false);
+        setNewProduct({ name: '', category: '', price: '', stockQuantity: '', description: '', image: '', collection: 'General' });
+        alert("Product added successfully!");
+      } else {
+        alert("Failed to add product: " + data.error);
+      }
+    } catch (err) {
+      alert("Error adding product");
     }
-    fetchStats()
-  }, [])
+  };
 
   // Close sidebar on mobile when tab changes
   useEffect(() => {
@@ -167,12 +205,12 @@ export default function AdminDashboard() {
                   {[1,2,3,4,5].map(i => (
                     <div key={i} className="flex items-center justify-between py-2 border-b border-border-primary last:border-0">
                       <div>
-                        <p className="text-sm font-bold">Order #KAL-{1000+i}</p>
-                        <p className="text-[10px] text-text-muted">Abebe Kebede • 2 items</p>
+                        <p className="text-sm font-bold">Order {orders[i]?.orderNumber || `#KAL-${1000+i}`}</p>
+                        <p className="text-[10px] text-text-muted">{orders[i]?.customerName || 'Abebe Kebede'} • 2 items</p>
                       </div>
                       <div className="text-right flex flex-col items-end gap-1">
-                        <p className="text-sm font-mono font-bold">ETB {(4500 * i).toLocaleString()}</p>
-                        <span className="bg-amber-100 text-amber-800 text-[9px] px-2 py-0.5 uppercase tracking-widest font-bold">Pending</span>
+                        <p className="text-sm font-mono font-bold">ETB {(orders[i]?.total || 4500 * i).toLocaleString()}</p>
+                        <span className="bg-amber-100 text-amber-800 text-[9px] px-2 py-0.5 uppercase tracking-widest font-bold">{orders[i]?.orderStatus || 'Pending'}</span>
                       </div>
                     </div>
                   ))}
@@ -186,74 +224,55 @@ export default function AdminDashboard() {
           <div className="space-y-6">
             <div className="flex justify-between items-center mb-8">
               <h2 className="text-2xl font-display font-bold">Manage Products</h2>
-              <button className="bg-accent text-white px-4 py-2 font-bold text-sm tracking-widest uppercase shadow-md hover:bg-accent-hover transition-colors">Add New Product</button>
+              <button onClick={() => setIsAddingProduct(!isAddingProduct)} className="bg-accent text-white px-4 py-2 font-bold text-sm tracking-widest uppercase shadow-md hover:bg-accent-hover transition-colors">
+                {isAddingProduct ? 'Cancel' : 'Add New Product'}
+              </button>
             </div>
             
-            <div className="flex items-center space-x-4">
-              <input type="text" placeholder="Search products..." className="border border-border-primary p-2 text-sm w-64 bg-surface" />
-              <button className="border border-border-primary px-4 py-2 text-sm bg-surface">Filters</button>
-              <button className="border border-border-primary px-4 py-2 text-sm bg-surface">Bulk Actions</button>
-            </div>
+            {isAddingProduct && (
+              <div className="bg-surface-card border border-border-primary p-6 space-y-4 mb-6">
+                <h3 className="font-bold text-lg border-b border-border-primary pb-4">Create Product</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <input type="text" placeholder="Product Name" value={newProduct.name} onChange={e => setNewProduct({...newProduct, name: e.target.value})} className="border border-border-primary p-2 text-sm bg-surface" />
+                  <input type="text" placeholder="Category (e.g. Shoes, Clothes)" value={newProduct.category} onChange={e => setNewProduct({...newProduct, category: e.target.value})} className="border border-border-primary p-2 text-sm bg-surface" />
+                  <input type="number" placeholder="Price (ETB)" value={newProduct.price} onChange={e => setNewProduct({...newProduct, price: e.target.value})} className="border border-border-primary p-2 text-sm bg-surface" />
+                  <input type="number" placeholder="Stock Quantity" value={newProduct.stockQuantity} onChange={e => setNewProduct({...newProduct, stockQuantity: e.target.value})} className="border border-border-primary p-2 text-sm bg-surface" />
+                  <textarea placeholder="Description" value={newProduct.description} onChange={e => setNewProduct({...newProduct, description: e.target.value})} className="border border-border-primary p-2 text-sm bg-surface col-span-1 md:col-span-2" rows={3} />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold mb-2">Product Image</label>
+                  <ImageUpload value={newProduct.image ? [newProduct.image] : []} onChange={(url) => setNewProduct({...newProduct, image: url})} onRemove={() => setNewProduct({...newProduct, image: ''})} />
+                </div>
+                <button onClick={handleAddProduct} className="bg-success text-white px-6 py-2 font-bold text-sm tracking-widest uppercase mt-4">Save Product</button>
+              </div>
+            )}
 
             <div className="bg-surface-card border border-border-primary overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead className="border-b border-border-primary text-text-muted">
                   <tr>
-                    <th className="p-4">Image</th>
                     <th className="p-4">Name</th>
                     <th className="p-4">Category</th>
                     <th className="p-4">Status</th>
                     <th className="p-4">Stock</th>
                     <th className="p-4">Price</th>
-                    <th className="p-4">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border-primary">
-                  <tr>
-                    <td className="p-4"><div className="w-10 h-10 bg-surface border border-border-primary" /></td>
-                    <td className="p-4 font-bold text-text-primary">City Leather Boots</td>
-                    <td className="p-4">Shoes</td>
-                    <td className="p-4"><span className="bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded-full font-bold">Published</span></td>
-                    <td className="p-4 font-mono">124</td>
-                    <td className="p-4 font-mono">ETB 5,400</td>
-                    <td className="p-4 text-accent hover:underline cursor-pointer">Edit</td>
-                  </tr>
-                  <tr>
-                    <td className="p-4"><div className="w-10 h-10 bg-surface border border-border-primary" /></td>
-                    <td className="p-4 font-bold text-text-primary">Heritage Tote</td>
-                    <td className="p-4">Accessories</td>
-                    <td className="p-4"><span className="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded-full font-bold">Draft</span></td>
-                    <td className="p-4 font-mono">0</td>
-                    <td className="p-4 font-mono">ETB 4,500</td>
-                    <td className="p-4 text-accent hover:underline cursor-pointer">Edit</td>
-                  </tr>
-                  <tr>
-                    <td className="p-4"><div className="w-10 h-10 bg-surface border border-border-primary" /></td>
-                    <td className="p-4 font-bold text-text-primary">Linen Shirt</td>
-                    <td className="p-4">Clothes</td>
-                    <td className="p-4"><span className="bg-red-50 text-red-600 text-xs px-2 py-0.5 rounded-full font-bold">Archived</span></td>
-                    <td className="p-4 font-mono">0</td>
-                    <td className="p-4 font-mono">ETB 3,200</td>
-                    <td className="p-4 text-accent hover:underline cursor-pointer">Edit</td>
-                  </tr>
+                  {products.map(p => (
+                    <tr key={p.id}>
+                      <td className="p-4 font-bold text-text-primary">{p.name}</td>
+                      <td className="p-4">{p.category}</td>
+                      <td className="p-4"><span className="bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded-full font-bold">{p.inStock ? 'In Stock' : 'Out of Stock'}</span></td>
+                      <td className="p-4 font-mono">{p.stockQuantity}</td>
+                      <td className="p-4 font-mono">ETB {p.price.toLocaleString()}</td>
+                    </tr>
+                  ))}
+                  {products.length === 0 && (
+                    <tr><td colSpan={5} className="p-4 text-center text-text-muted">No products found.</td></tr>
+                  )}
                 </tbody>
               </table>
-            </div>
-
-            <div className="bg-surface-card border border-border-primary p-6 space-y-6">
-              <h3 className="font-bold text-lg border-b border-border-primary pb-4">Product Editor (Spec Loader)</h3>
-              <ul className="list-disc list-inside space-y-2 text-text-muted text-sm">
-                <li>EN + አማ fields for name, short description, long description</li>
-                <li>Image upload (Cloudinary) + drag-to-reorder + primary selection</li>
-                <li>Variant matrix (size × colour grid with stock inputs)</li>
-                <li>Status, Featured toggle, Best Seller toggle</li>
-                <li>Scheduled publish date/time picker</li>
-                <li>SEO fields (meta title, meta description, slug)</li>
-                <li>Complete The Look multi-select & Bundle configuration</li>
-              </ul>
-              <div className="pt-4">
-                <ImageUpload value={[]} onChange={() => {}} onRemove={() => {}} />
-              </div>
             </div>
           </div>
         )
@@ -273,48 +292,18 @@ export default function AdminDashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border-primary">
-                  <tr className="border border-amber-400 bg-amber-50/10">
-                    <td className="p-4 font-bold">#KAL-1005</td>
-                    <td className="p-4">Abebe Kebede</td>
-                    <td className="p-4"><span className="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded-full font-bold">Pending Confirmation</span></td>
-                    <td className="p-4 font-mono">ETB 12,000</td>
-                    <td className="p-4 text-text-muted">Today, 10:30 AM</td>
-                  </tr>
-                  <tr>
-                    <td className="p-4 font-bold">#KAL-1004</td>
-                    <td className="p-4">Hanna Tadesse</td>
-                    <td className="p-4"><span className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full font-bold">Payment Confirmed</span></td>
-                    <td className="p-4 font-mono">ETB 4,500</td>
-                    <td className="p-4 text-text-muted">Today, 09:15 AM</td>
-                  </tr>
-                  <tr>
-                    <td className="p-4 font-bold">#KAL-1003</td>
-                    <td className="p-4">Dawit Mengistu</td>
-                    <td className="p-4"><span className="bg-purple-100 text-purple-800 text-xs px-2 py-0.5 rounded-full font-bold">Processing</span></td>
-                    <td className="p-4 font-mono">ETB 7,800</td>
-                    <td className="p-4 text-text-muted">Yesterday</td>
-                  </tr>
-                  <tr>
-                    <td className="p-4 font-bold">#KAL-1002</td>
-                    <td className="p-4">Helen Getachew</td>
-                    <td className="p-4"><span className="bg-indigo-100 text-indigo-800 text-xs px-2 py-0.5 rounded-full font-bold">Dispatched</span></td>
-                    <td className="p-4 font-mono">ETB 5,400</td>
-                    <td className="p-4 text-text-muted">Yesterday</td>
-                  </tr>
-                  <tr>
-                    <td className="p-4 font-bold">#KAL-1001</td>
-                    <td className="p-4">Samuel Bekele</td>
-                    <td className="p-4"><span className="bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded-full font-bold">Delivered</span></td>
-                    <td className="p-4 font-mono">ETB 3,200</td>
-                    <td className="p-4 text-text-muted">2 Days Ago</td>
-                  </tr>
-                  <tr>
-                    <td className="p-4 font-bold">#KAL-1000</td>
-                    <td className="p-4">Betelhem Assefa</td>
-                    <td className="p-4"><span className="bg-red-50 text-red-600 text-xs px-2 py-0.5 rounded-full font-bold">Refunded</span></td>
-                    <td className="p-4 font-mono">ETB 2,100</td>
-                    <td className="p-4 text-text-muted">Last Week</td>
-                  </tr>
+                  {orders.map(o => (
+                    <tr key={o.id}>
+                      <td className="p-4 font-bold">{o.orderNumber}</td>
+                      <td className="p-4">{o.customerName}</td>
+                      <td className="p-4"><span className="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded-full font-bold">{o.orderStatus}</span></td>
+                      <td className="p-4 font-mono">ETB {o.total.toLocaleString()}</td>
+                      <td className="p-4 text-text-muted">{new Date(o.createdAt).toLocaleDateString()}</td>
+                    </tr>
+                  ))}
+                  {orders.length === 0 && (
+                    <tr><td colSpan={5} className="p-4 text-center text-text-muted">No orders found.</td></tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -323,40 +312,31 @@ export default function AdminDashboard() {
       case 'partners':
         return (
           <div className="space-y-6">
-            <h2 className="text-2xl font-display font-bold">Partners</h2>
+            <h2 className="text-2xl font-display font-bold">Partner Applications</h2>
             <div className="bg-surface-card border border-border-primary overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead className="border-b border-border-primary text-text-muted">
                   <tr>
-                    <th className="p-4">Partner</th>
-                    <th className="p-4">Type</th>
+                    <th className="p-4">Name</th>
+                    <th className="p-4">Platform</th>
+                    <th className="p-4">Audience</th>
                     <th className="p-4">Status</th>
-                    <th className="p-4">Total Sales</th>
-                    <th className="p-4">Pending Payout</th>
+                    <th className="p-4">Date</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border-primary">
-                  <tr>
-                    <td className="p-4 font-bold">Alemu Design</td>
-                    <td className="p-4">Artisan</td>
-                    <td className="p-4"><span className="bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded-full font-bold">Active</span></td>
-                    <td className="p-4 font-mono">ETB 45,000</td>
-                    <td className="p-4 font-mono">ETB 12,000</td>
-                  </tr>
-                  <tr>
-                    <td className="p-4 font-bold">Selam Threads</td>
-                    <td className="p-4">Boutique</td>
-                    <td className="p-4"><span className="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded-full font-bold">Pending</span></td>
-                    <td className="p-4 font-mono">-</td>
-                    <td className="p-4 font-mono">-</td>
-                  </tr>
-                  <tr>
-                    <td className="p-4 font-bold">Ethio Crafts</td>
-                    <td className="p-4">Manufacturer</td>
-                    <td className="p-4"><span className="bg-gray-100 text-gray-600 text-xs px-2 py-0.5 rounded-full font-bold">Inactive</span></td>
-                    <td className="p-4 font-mono">ETB 120,000</td>
-                    <td className="p-4 font-mono">ETB 0</td>
-                  </tr>
+                  {partners.map(p => (
+                    <tr key={p.id}>
+                      <td className="p-4 font-bold">{p.fullName}</td>
+                      <td className="p-4">{p.platform}</td>
+                      <td className="p-4">{p.audienceSize}</td>
+                      <td className="p-4"><span className="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded-full font-bold">{p.status}</span></td>
+                      <td className="p-4 text-text-muted">{new Date(p.createdAt).toLocaleDateString()}</td>
+                    </tr>
+                  ))}
+                  {partners.length === 0 && (
+                    <tr><td colSpan={5} className="p-4 text-center text-text-muted">No applications found.</td></tr>
+                  )}
                 </tbody>
               </table>
             </div>
