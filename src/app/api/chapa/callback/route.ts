@@ -64,7 +64,7 @@ async function processPaymentConfirmation(orderId: string) {
     where: { orderNumber: orderId },
     data: {
       paymentStatus: "PAID",
-      orderStatus: "CONFIRMED"
+      orderStatus: "PAYMENT_CONFIRMED"
     }
   });
 
