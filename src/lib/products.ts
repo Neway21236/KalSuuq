@@ -1,3 +1,4 @@
+import { Product as DbProduct, ProductVariant } from "@prisma/client"
 import prisma from "./db"
 
 export interface Colour {
@@ -28,8 +29,12 @@ export interface Product {
   images: string[]
 }
 
+type ProductWithVariants = DbProduct & {
+  variants: ProductVariant[]
+}
+
 // Map database product to storefront product interface
-const mapProduct = (dbProduct: any): Product => ({
+const mapProduct = (dbProduct: ProductWithVariants): Product => ({
   id: dbProduct.id,
   slug: dbProduct.slug,
   name: dbProduct.name,
@@ -45,11 +50,11 @@ const mapProduct = (dbProduct: any): Product => ({
   inStock: dbProduct.inStock,
   description: dbProduct.description,
   descriptionAm: dbProduct.descriptionAm || '',
-  sizes: dbProduct.variants?.map((v: any) => v.size).filter(Boolean) || [],
-  colours: dbProduct.variants?.map((v: any) => ({
-    name: v.colour,
+  sizes: dbProduct.variants?.map(v => v.size).filter((s): s is string => !!s) || [],
+  colours: dbProduct.variants?.map(v => ({
+    name: v.colour || '',
     hex: v.colourHex || '#000000'
-  })).filter((c: any) => c.name) || [],
+  })).filter(c => c.name) || [],
   images: dbProduct.images || [dbProduct.image]
 })
 
