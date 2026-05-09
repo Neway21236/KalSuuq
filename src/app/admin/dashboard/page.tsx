@@ -20,6 +20,8 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
+import { Product, Order, PartnerApplication } from '@prisma/client'
+
 interface AdminStats {
   totalOrders: number;
   revenueToday: number;
@@ -40,9 +42,9 @@ const revenueData = [
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('dashboard')
   const [stats, setStats] = useState<AdminStats | null>(null)
-  const [products, setProducts] = useState<any[]>([])
-  const [orders, setOrders] = useState<any[]>([])
-  const [partners, setPartners] = useState<any[]>([])
+  const [products, setProducts] = useState<Product[]>([])
+  const [orders, setOrders] = useState<Order[]>([])
+  const [partners, setPartners] = useState<PartnerApplication[]>([])
   const [isAddingProduct, setIsAddingProduct] = useState(false)
   const [newProduct, setNewProduct] = useState({ name: '', category: '', price: '', stockQuantity: '', description: '', image: '', collection: 'General' })
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
@@ -73,6 +75,7 @@ export default function AdminDashboard() {
       }
     };
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
   const handleAddProduct = async () => {
@@ -91,7 +94,7 @@ export default function AdminDashboard() {
       } else {
         alert("Failed to add product: " + data.error);
       }
-    } catch (err) {
+    } catch {
       alert("Error adding product");
     }
   };

@@ -19,8 +19,8 @@ export async function GET(req: NextRequest) {
     });
 
     return NextResponse.json({ success: true, products });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  } catch (error) {
+    return NextResponse.json({ success: false, error: (error as Error).message }, { status: 500 });
   }
 }
 
@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({ success: true, product });
-  } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  } catch (error) {
+    return NextResponse.json({ success: false, error: (error as Error).message }, { status: 500 });
   }
 }
