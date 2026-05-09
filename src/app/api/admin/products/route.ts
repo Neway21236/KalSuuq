@@ -15,6 +15,9 @@ export async function GET(req: NextRequest) {
     }
 
     const products = await prisma.product.findMany({
+      include: {
+        variants: true
+      },
       orderBy: { createdAt: 'desc' }
     });
 
@@ -44,16 +47,39 @@ export async function POST(req: NextRequest) {
         name: body.name,
         nameAm: body.nameAm || null,
         slug,
-        collection: body.collection || 'General',
-        price: parseFloat(body.price),
-        image: body.image,
-        category: body.category,
+        sku: body.sku || null,
+        shortDescription: body.shortDescription || null,
         description: body.description,
-        inStock: true,
-        stockQuantity: parseInt(body.stockQuantity || '10'),
-        sizes: body.sizes || [],
-        colours: body.colours || [],
+        descriptionAm: body.descriptionAm || null,
+        collection: body.collection || 'General',
+        collectionAm: body.collectionAm || null,
+        category: body.category,
+        categoryAm: body.categoryAm || null,
+        tags: body.tags || [],
+        price: parseFloat(body.price),
+        originalPrice: body.originalPrice ? parseFloat(body.originalPrice) : null,
+        status: body.status || 'DRAFT',
+        isFeatured: body.isFeatured || false,
+        isBestSeller: body.isBestSeller || false,
+        image: body.image,
         images: body.images || [body.image],
+        inStock: body.inStock !== undefined ? body.inStock : true,
+        stockQuantity: parseInt(body.stockQuantity || '10'),
+        lowStockThreshold: parseInt(body.lowStockThreshold || '3'),
+        variants: body.variants ? {
+          create: body.variants.map((v: { sku?: string; size?: string; colour?: string; colourHex?: string; price?: string | number; stock?: string | number; image?: string }) => ({
+            sku: v.sku || null,
+            size: v.size || null,
+            colour: v.colour || null,
+            colourHex: v.colourHex || null,
+            price: v.price ? parseFloat(v.price.toString()) : null,
+            stock: parseInt(v.stock?.toString() || '0'),
+            image: v.image || null,
+          }))
+        } : undefined,
+      },
+      include: {
+        variants: true
       }
     });
 
