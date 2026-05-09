@@ -15,9 +15,10 @@ interface ImageUploadProps {
 export default function ImageUpload({ value, onChange, onRemove }: ImageUploadProps) {
   const { language } = useLanguageStore();
 
-  const onSuccess = (result: any) => {
-    if (result?.info?.secure_url) {
-      onChange(result.info.secure_url);
+  const onSuccess = (result: unknown) => {
+    const res = result as { info?: { secure_url?: string } };
+    if (res?.info?.secure_url) {
+      onChange(res.info.secure_url);
     }
   };
 
