@@ -146,85 +146,140 @@ export default function Navbar() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsMobileMenuOpen(false)}
-              className="fixed inset-0 bg-ink/80 backdrop-blur-xl z-[60] md:hidden"
+              className="fixed inset-0 bg-ink/90 backdrop-blur-md z-[60] md:hidden"
             />
             <motion.div 
-              initial={{ x: '100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed inset-y-0 right-0 w-full max-w-md bg-surface z-[70] md:hidden flex flex-col p-12 border-l border-border-primary shadow-2xl transition-colors duration-300"
+              initial={{ x: '100%', opacity: 0.5 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: '100%', opacity: 0.5 }}
+              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+              className="fixed inset-y-0 right-0 w-full bg-surface dark:bg-[#0D0B0A] z-[70] md:hidden flex flex-col p-8 sm:p-12 overflow-y-auto overflow-x-hidden"
             >
-              <div className="flex items-center justify-between mb-20">
-                <span className="font-display font-bold text-3xl tracking-[0.5em] text-text-primary uppercase">
-                  Kalsuq
-                </span>
-                <button aria-label="Close mobile menu" onClick={() => setIsMobileMenuOpen(false)} className="text-text-primary hover:text-accent transition-all p-3 border border-border-primary hover:bg-accent/5">
-                  <X size={36} strokeWidth={1} />
+              {/* Decorative Background Element */}
+              <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[40%] bg-accent/10 blur-[120px] rounded-full pointer-events-none" />
+              <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[40%] bg-accent/5 blur-[120px] rounded-full pointer-events-none" />
+
+              <div className="flex items-center justify-between mb-12 sm:mb-20 relative z-10">
+                <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="font-display font-bold text-2xl tracking-[0.4em] text-text-primary uppercase">
+                  Kalsuq<span className="text-accent">.</span>
+                </Link>
+                <button 
+                  aria-label="Close mobile menu" 
+                  onClick={() => setIsMobileMenuOpen(false)} 
+                  className="text-text-primary hover:text-accent transition-all p-2 rounded-full border border-border-primary/50 bg-surface-card/50 backdrop-blur-sm shadow-xl"
+                >
+                  <X size={28} strokeWidth={1.5} />
                 </button>
               </div>
 
-              <div className="flex flex-col space-y-10">
+              <nav className="flex flex-col space-y-2 relative z-10">
                 {navLinks.map((link, idx) => (
                   <motion.div
                     key={link.name}
-                    initial={{ opacity: 0, x: 20 }}
+                    initial={{ opacity: 0, x: 50 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: idx * 0.1 }}
+                    transition={{ delay: 0.1 + idx * 0.08, ease: [0.22, 1, 0.36, 1] }}
                   >
                     <Link
                       href={link.href}
                       className={cn(
-                        "text-5xl font-display font-bold py-6 border-b border-border-primary flex items-center justify-between group transition-all",
-                        pathname === link.href ? "text-accent" : "text-text-primary",
-                        language === 'am' && "font-ethiopic text-4xl"
+                        "group block py-4 flex items-baseline justify-between transition-all duration-500",
+                        pathname === link.href ? "text-accent" : "text-text-primary hover:text-accent"
                       )}
                     >
-                      <span>{language === 'en' ? link.name : link.nameAm}</span>
-                      <ChevronRight size={32} className="text-border-primary group-hover:text-accent transition-all group-hover:translate-x-3" />
+                      <div className="flex flex-col">
+                        <span className="text-[10px] text-accent/40 font-bold uppercase tracking-[0.5em] mb-1 opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-y-2 group-hover:translate-y-0">
+                          {idx + 1 < 10 ? `0${idx + 1}` : idx + 1}
+                        </span>
+                        <span className={cn(
+                          "text-4xl sm:text-5xl md:text-6xl font-display font-bold tracking-tighter leading-none transition-transform duration-500 group-hover:translate-x-2",
+                          language === 'am' && "font-ethiopic text-3xl sm:text-4xl"
+                        )}>
+                          {language === 'en' ? link.name : link.nameAm}
+                        </span>
+                      </div>
+                      <ChevronRight 
+                        size={32} 
+                        className={cn(
+                          "transition-all duration-500 opacity-0 group-hover:opacity-100 group-hover:translate-x-2",
+                          pathname === link.href ? "opacity-100 text-accent" : "text-border-primary"
+                        )} 
+                        strokeWidth={1}
+                      />
                     </Link>
                   </motion.div>
                 ))}
-              </div>
+              </nav>
 
-              <div className="mt-auto pt-16 space-y-10">
-                <div className="grid grid-cols-2 gap-6">
-                  <button 
+              <div className="mt-auto pt-12 space-y-8 relative z-10">
+                <div className="grid grid-cols-2 gap-4">
+                  <motion.button 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5 }}
                     onClick={() => setLanguage(language === 'en' ? 'am' : 'en')}
                     className={cn(
-                      "text-[10px] font-bold tracking-[0.3em] uppercase px-6 py-4 border border-border-primary text-text-primary flex flex-col items-center space-y-2 active:scale-95 transition-all bg-surface-card shadow-lg",
-                      language === 'am' && "font-ethiopic tracking-normal text-xs"
+                      "flex flex-col items-start p-4 border border-border-primary/50 bg-surface-card/30 backdrop-blur-sm transition-all hover:border-accent group",
+                      language === 'am' && "font-ethiopic"
                     )}
                   >
-                    <span className="opacity-60">{language === 'en' ? 'Language' : 'ቋንቋ'}</span>
-                    <span className="text-accent">{language === 'en' ? 'English' : 'አማርኛ'}</span>
-                  </button>
+                    <span className="text-[9px] text-text-muted uppercase font-bold tracking-widest mb-1">{language === 'en' ? 'Language' : 'ቋንቋ'}</span>
+                    <span className="text-xs font-bold text-text-primary group-hover:text-accent transition-colors">{language === 'en' ? 'English' : 'አማርኛ'}</span>
+                  </motion.button>
 
-                  <button 
+                  <motion.button 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.6 }}
                     onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                    className="p-6 border border-border-primary text-text-primary active:scale-95 transition-all bg-surface-card shadow-lg flex flex-col items-center space-y-2"
+                    className="flex flex-col items-start p-4 border border-border-primary/50 bg-surface-card/30 backdrop-blur-sm transition-all hover:border-accent group"
                   >
-                    <span className="opacity-60 uppercase text-[10px] tracking-widest font-bold">{language === 'en' ? 'Theme' : 'ገጽታ'}</span>
-                    {theme === 'dark' ? <Sun size={24} className="text-accent" /> : <Moon size={24} className="text-accent" />}
-                  </button>
+                    <span className="text-[9px] text-text-muted uppercase font-bold tracking-widest mb-1">{language === 'en' ? 'Theme' : 'ገጽታ'}</span>
+                    <div className="flex items-center space-x-2 text-xs font-bold text-text-primary group-hover:text-accent transition-colors">
+                      {theme === 'dark' ? (
+                        <>
+                          <Sun size={14} />
+                          <span>Light Mode</span>
+                        </>
+                      ) : (
+                        <>
+                          <Moon size={14} />
+                          <span>Dark Mode</span>
+                        </>
+                      )}
+                    </div>
+                  </motion.button>
                 </div>
                 
-                <Link 
-                  href="/shop"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className={cn(
-                    "block w-full bg-accent text-white dark:text-ink text-center py-7 text-[10px] font-bold tracking-[0.5em] uppercase shadow-2xl active:scale-95 transition-all",
-                    language === 'am' && "font-ethiopic tracking-normal text-sm"
-                  )}
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.7 }}
                 >
-                  {language === 'en' ? 'Shop the Collection' : 'አሁኑኑ ይግዙ'}
-                </Link>
+                  <Link 
+                    href="/shop"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={cn(
+                      "block w-full bg-accent text-white dark:text-ink text-center py-6 text-[10px] font-bold tracking-[0.5em] uppercase shadow-2xl active:scale-[0.98] transition-all hover:bg-accent-hover",
+                      language === 'am' && "font-ethiopic tracking-normal text-sm"
+                    )}
+                  >
+                    {language === 'en' ? 'Explore Collections' : 'አሁኑኑ ይግዙ'}
+                  </Link>
+                </motion.div>
 
-                <div className="flex justify-center space-x-12 text-[10px] text-text-secondary uppercase tracking-[0.4em] font-bold opacity-80 pt-6">
-                  <Link href="/contact" className="hover:text-accent transition-all">Support</Link>
-                  <Link href="/partners" className="hover:text-accent transition-all">Sell</Link>
-                  <Link href="/about" className="hover:text-accent transition-all">Story</Link>
-                </div>
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 0.6 }}
+                  transition={{ delay: 0.8 }}
+                  className="flex justify-between items-center px-2 text-[9px] text-text-muted uppercase tracking-[0.3em] font-bold"
+                >
+                  <Link href="/contact" className="hover:text-accent transition-colors">Support</Link>
+                  <div className="h-px w-8 bg-border-primary" />
+                  <Link href="/partners" className="hover:text-accent transition-colors">Sell</Link>
+                  <div className="h-px w-8 bg-border-primary" />
+                  <Link href="/about" className="hover:text-accent transition-colors">Story</Link>
+                </motion.div>
               </div>
             </motion.div>
           </>
