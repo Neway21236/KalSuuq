@@ -46,7 +46,7 @@ export default function AdminDashboard() {
   const [orders, setOrders] = useState<Order[]>([])
   const [partners, setPartners] = useState<PartnerApplication[]>([])
   const [isAddingProduct, setIsAddingProduct] = useState(false)
-  const [newProduct, setNewProduct] = useState({ name: '', category: '', price: '', stockQuantity: '', description: '', image: '', collection: 'General' })
+  const [newProduct, setNewProduct] = useState({ name: '', category: '', price: '', stockQuantity: '', description: '', image: '', collection: '' })
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const router = useRouter()
 
@@ -79,6 +79,10 @@ export default function AdminDashboard() {
   }, [activeTab]);
 
   const handleAddProduct = async () => {
+    if (!newProduct.image) {
+      alert("Please upload an image first");
+      return;
+    }
     try {
       const res = await fetch('/api/admin/products', {
         method: 'POST',
@@ -89,7 +93,7 @@ export default function AdminDashboard() {
       if (data.success) {
         setProducts([data.product, ...products]);
         setIsAddingProduct(false);
-        setNewProduct({ name: '', category: '', price: '', stockQuantity: '', description: '', image: '', collection: 'General' });
+        setNewProduct({ name: '', category: '', price: '', stockQuantity: '', description: '', image: '', collection: '' });
         alert("Product added successfully!");
       } else {
         alert("Failed to add product: " + data.error);
@@ -236,11 +240,12 @@ export default function AdminDashboard() {
               <div className="bg-surface-card border border-border-primary p-6 space-y-4 mb-6">
                 <h3 className="font-bold text-lg border-b border-border-primary pb-4">Create Product</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <input type="text" placeholder="Product Name" value={newProduct.name} onChange={e => setNewProduct({...newProduct, name: e.target.value})} className="border border-border-primary p-2 text-sm bg-surface" />
-                  <input type="text" placeholder="Category (e.g. Shoes, Clothes)" value={newProduct.category} onChange={e => setNewProduct({...newProduct, category: e.target.value})} className="border border-border-primary p-2 text-sm bg-surface" />
-                  <input type="number" placeholder="Price (ETB)" value={newProduct.price} onChange={e => setNewProduct({...newProduct, price: e.target.value})} className="border border-border-primary p-2 text-sm bg-surface" />
+                  <input type="text" placeholder="Product Name" required value={newProduct.name} onChange={e => setNewProduct({...newProduct, name: e.target.value})} className="border border-border-primary p-2 text-sm bg-surface" />
+                  <input type="text" placeholder="Category (e.g. Shoes, Clothes)" required value={newProduct.category} onChange={e => setNewProduct({...newProduct, category: e.target.value})} className="border border-border-primary p-2 text-sm bg-surface" />
+                  <input type="text" placeholder="Collection (e.g. Summer 2026, Luxury)" required value={newProduct.collection} onChange={e => setNewProduct({...newProduct, collection: e.target.value})} className="border border-border-primary p-2 text-sm bg-surface" />
+                  <input type="number" placeholder="Price (ETB)" required value={newProduct.price} onChange={e => setNewProduct({...newProduct, price: e.target.value})} className="border border-border-primary p-2 text-sm bg-surface" />
                   <input type="number" placeholder="Stock Quantity" value={newProduct.stockQuantity} onChange={e => setNewProduct({...newProduct, stockQuantity: e.target.value})} className="border border-border-primary p-2 text-sm bg-surface" />
-                  <textarea placeholder="Description" value={newProduct.description} onChange={e => setNewProduct({...newProduct, description: e.target.value})} className="border border-border-primary p-2 text-sm bg-surface col-span-1 md:col-span-2" rows={3} />
+                  <textarea placeholder="Description" required value={newProduct.description} onChange={e => setNewProduct({...newProduct, description: e.target.value})} className="border border-border-primary p-2 text-sm bg-surface col-span-1 md:col-span-2" rows={3} />
                 </div>
                 <div>
                   <label className="block text-sm font-bold mb-2">Product Image</label>
@@ -254,8 +259,10 @@ export default function AdminDashboard() {
               <table className="w-full text-left text-sm">
                 <thead className="border-b border-border-primary text-text-muted">
                   <tr>
+                    <th className="p-4">Image</th>
                     <th className="p-4">Name</th>
                     <th className="p-4">Category</th>
+                    <th className="p-4">Collection</th>
                     <th className="p-4">Status</th>
                     <th className="p-4">Stock</th>
                     <th className="p-4">Price</th>
@@ -264,15 +271,23 @@ export default function AdminDashboard() {
                 <tbody className="divide-y divide-border-primary">
                   {products.map(p => (
                     <tr key={p.id}>
+                      <td className="p-4">
+                        {p.image && (
+                          <div className="w-12 h-12 relative border border-border-primary overflow-hidden bg-surface-card">
+                            <Image src={p.image} alt={p.name} fill className="object-cover" sizes="48px" />
+                          </div>
+                        )}
+                      </td>
                       <td className="p-4 font-bold text-text-primary">{p.name}</td>
                       <td className="p-4">{p.category}</td>
-                      <td className="p-4"><span className="bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded-full font-bold">{p.inStock ? 'In Stock' : 'Out of Stock'}</span></td>
+                      <td className="p-4 text-xs">{p.collection}</td>
+                      <td className="p-4"><span className="bg-green-100 text-green-800 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">{p.inStock ? 'In Stock' : 'Out of Stock'}</span></td>
                       <td className="p-4 font-mono">{p.stockQuantity}</td>
                       <td className="p-4 font-mono">ETB {p.price.toLocaleString()}</td>
                     </tr>
                   ))}
                   {products.length === 0 && (
-                    <tr><td colSpan={5} className="p-4 text-center text-text-muted">No products found.</td></tr>
+                    <tr><td colSpan={7} className="p-4 text-center text-text-muted">No products found.</td></tr>
                   )}
                 </tbody>
               </table>
