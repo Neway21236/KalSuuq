@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getProducts } from "@/lib/products";
 
-export const revalidate = 3600; // Cache for 1 hour at the edge
+export const revalidate = 60; // Cache for 60 seconds at the edge
 
 export async function GET() {
   try {
@@ -17,7 +17,7 @@ export async function GET() {
     });
 
     // Add HTTP Caching Headers for CDN / Browser
-    response.headers.set('Cache-Control', 's-maxage=3600, stale-while-revalidate=86400');
+    response.headers.set('Cache-Control', 's-maxage=60, stale-while-revalidate=86400');
     
     return response;
   } catch {
