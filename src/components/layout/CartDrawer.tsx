@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { X, ShoppingBag, Minus, Plus } from 'lucide-react'
@@ -185,7 +186,7 @@ export default function CartDrawer() {
                       </div>
                     </motion.div>
                   ))}
-              )}
+                </div>
 
               {/* Upsell Row - FR-CART-05 */}
               {items.length > 0 && upsellProducts.length > 0 && (
