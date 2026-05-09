@@ -250,7 +250,11 @@ export default function AdminDashboard() {
                 </div>
                 <div>
                   <label className="block text-sm font-bold mb-2">Product Image</label>
-                  <ImageUpload value={newProduct.image ? [newProduct.image] : []} onChange={(url) => setNewProduct({...newProduct, image: url})} onRemove={() => setNewProduct({...newProduct, image: ''})} />
+                  <ImageUpload 
+                    value={newProduct.image ? [newProduct.image] : []} 
+                    onChange={(url) => setNewProduct(prev => ({...prev, image: url}))} 
+                    onRemove={() => setNewProduct(prev => ({...prev, image: ''}))} 
+                  />
                 </div>
                 <button onClick={handleAddProduct} className="bg-success text-white px-6 py-2 font-bold text-sm tracking-widest uppercase mt-4">Save Product</button>
               </div>
