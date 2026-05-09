@@ -1,8 +1,9 @@
 import { MetadataRoute } from 'next'
-import { products } from '@/lib/products'
+import { getProducts } from '@/lib/products'
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://kalsuq.com'
+  const products = await getProducts()
 
   const productUrls = products.map((product) => ({
     url: `${baseUrl}/shop/${product.slug}`,
