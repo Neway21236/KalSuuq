@@ -116,28 +116,47 @@ model StockAdjustment {
   createdAt     DateTime  @default(now())
 }
 
+enum OrderStatus {
+  PENDING_CONFIRMATION
+  PAYMENT_CONFIRMED
+  PROCESSING
+  DISPATCHED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
 model Order {
   id              String    @id @default(cuid())
   orderNumber     String    @unique // e.g., KS-12345
   items           OrderItem[]
   total           Float
-  deliveryZone    String
+  deliveryZone    String    // Addis / Nationwide
+  deliveryType    String?   // Standard / Express
   deliveryFee     Float
-  paymentMethod   String
+  paymentMethod   String    // Chapa / COD
   paymentStatus   PaymentStatus @default(PENDING)
-  orderStatus     OrderStatus   @default(PENDING)
+  orderStatus     OrderStatus   @default(PENDING_CONFIRMATION)
   customerName    String
   customerPhone   String
   customerEmail   String?
   deliveryAddress String?
   latitude        Float?
   longitude       Float?
+  partnerCode     String?   // Referral / Influencer code
+  trackingLink    String?   // External courier tracking
+  internalNotes   String?   @db.Text
+  
+  // JSON array of { status: string, timestamp: string, note: string }
+  statusHistory   Json?     @default("[]")
+  
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
   @@index([createdAt])
   @@index([paymentStatus])
   @@index([orderStatus])
+  @@index([partnerCode])
 }
 
 model OrderItem {
@@ -160,15 +179,6 @@ enum PaymentStatus {
   PAID
   FAILED
   REFUNDED
-}
-
-enum OrderStatus {
-  PENDING
-  CONFIRMED
-  PROCESSING
-  SHIPPED
-  DELIVERED
-  CANCELLED
 }
 
 model PartnerApplication {
