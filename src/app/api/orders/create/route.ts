@@ -7,6 +7,7 @@ type TxClient = Parameters<Parameters<typeof prisma.$transaction>[0]>[0];
 
 interface CartItem {
   productId: string;
+  variantId?: string;
   name?: string;
   quantity: number;
   size: string;
@@ -66,6 +67,7 @@ export async function POST(req: NextRequest) {
 
     interface OrderItemInput {
       productId: string;
+      variantId?: string;
       name: string;
       quantity: number;
       price: number;
@@ -76,20 +78,14 @@ export async function POST(req: NextRequest) {
     let secureServerTotal = 0;
     const secureItemsToCreate: OrderItemInput[] = [];
 
-    interface DbProduct {
-      id: string;
-      price: number;
-      inStock: boolean;
-    }
-
     for (const item of items) {
-      const dbProduct = (dbProducts as DbProduct[]).find(p => p.id === item.productId);
+      const dbProduct = dbProducts.find(p => p.id === item.productId);
       
       if (!dbProduct) {
         return NextResponse.json({ success: false, message: `Product ${item.productId} not found` }, { status: 400 });
       }
       
-      // Stock Validation Edge Case
+      // Stock Validation Edge Case (Product level)
       if (!dbProduct.inStock) {
         return NextResponse.json({ success: false, message: `Product ${item.name || item.productId} is out of stock` }, { status: 400 });
       }
@@ -97,6 +93,7 @@ export async function POST(req: NextRequest) {
       secureServerTotal += dbProduct.price * item.quantity;
       secureItemsToCreate.push({
         productId: item.productId,
+        variantId: item.variantId,
         name: item.name || "Product",
         quantity: item.quantity,
         price: dbProduct.price, // USE DB PRICE, NOT CLIENT PRICE
@@ -112,23 +109,47 @@ export async function POST(req: NextRequest) {
     const order = await prisma.$transaction(async (tx: TxClient) => {
       // 1. Double check stock inside the transaction lock
       for (const item of items) {
-        const product = await tx.product.findUnique({
-          where: { id: item.productId },
-          select: { stockQuantity: true, inStock: true }
-        });
+        if (item.variantId) {
+          const variant = await tx.productVariant.findUnique({
+            where: { id: item.variantId },
+            select: { stock: true, productId: true }
+          });
 
-        if (!product || !product.inStock || product.stockQuantity < item.quantity) {
-          throw new Error(`INSUFFICIENT_STOCK: ${item.name}`);
-        }
-
-        // 2. Decrement stock atomically
-        await tx.product.update({
-          where: { id: item.productId },
-          data: {
-            stockQuantity: { decrement: item.quantity },
-            inStock: product.stockQuantity - item.quantity > 0
+          if (!variant || variant.stock < item.quantity) {
+            throw new Error(`INSUFFICIENT_STOCK: ${item.name} (${item.size}/${item.colour})`);
           }
-        });
+
+          // 2a. Decrement variant stock atomically
+          await tx.productVariant.update({
+            where: { id: item.variantId },
+            data: { stock: { decrement: item.quantity } }
+          });
+
+          // 2b. Decrement global product stock (for general tracking)
+          await tx.product.update({
+            where: { id: item.productId },
+            data: { stockQuantity: { decrement: item.quantity } }
+          });
+        } else {
+          // Legacy/Single variant logic
+          const product = await tx.product.findUnique({
+            where: { id: item.productId },
+            select: { stockQuantity: true, inStock: true }
+          });
+
+          if (!product || !product.inStock || product.stockQuantity < item.quantity) {
+            throw new Error(`INSUFFICIENT_STOCK: ${item.name}`);
+          }
+
+          // 2. Decrement stock atomically
+          await tx.product.update({
+            where: { id: item.productId },
+            data: {
+              stockQuantity: { decrement: item.quantity },
+              inStock: product.stockQuantity - item.quantity > 0
+            }
+          });
+        }
       }
 
       // 3. Create the order
@@ -143,7 +164,15 @@ export async function POST(req: NextRequest) {
           customerPhone: body.customerPhone || "N/A",
           customerEmail: body.customerEmail,
           items: {
-            create: secureItemsToCreate
+            create: secureItemsToCreate.map(i => ({
+              productId: i.productId,
+              variantId: i.variantId,
+              name: i.name,
+              quantity: i.quantity,
+              price: i.price,
+              size: i.size,
+              colour: i.colour
+            }))
           }
         }
       });

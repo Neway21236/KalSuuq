@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import Image from 'next/image'
 import ImageUpload from '@/components/admin/ImageUpload'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
@@ -21,7 +21,11 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-import { Product, Order, PartnerApplication } from '@prisma/client'
+import { Product, ProductVariant, Order, PartnerApplication } from '@prisma/client'
+
+type ProductWithVariants = Product & {
+  variants: ProductVariant[]
+}
 
 interface AdminStats {
   totalOrders: number;
@@ -43,11 +47,28 @@ const revenueData = [
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('dashboard')
   const [stats, setStats] = useState<AdminStats | null>(null)
-  const [products, setProducts] = useState<Product[]>([])
+  const [products, setProducts] = useState<ProductWithVariants[]>([])
   const [orders, setOrders] = useState<Order[]>([])
   const [partners, setPartners] = useState<PartnerApplication[]>([])
   const [isAddingProduct, setIsAddingProduct] = useState(false)
-  const [newProduct, setNewProduct] = useState({ name: '', category: '', price: '', stockQuantity: '', description: '', image: '', collection: '' })
+  const [newProduct, setNewProduct] = useState({ 
+    name: '', 
+    sku: '',
+    category: '', 
+    collection: '',
+    price: '', 
+    originalPrice: '',
+    stockQuantity: '', 
+    lowStockThreshold: '3',
+    shortDescription: '',
+    description: '', 
+    image: '', 
+    status: 'DRAFT' as 'DRAFT' | 'PUBLISHED' | 'ARCHIVED',
+    isFeatured: false,
+    isBestSeller: false,
+    tags: [] as string[],
+    variants: [] as { sku: string; size: string; colour: string; stock: string; price: string }[]
+  })
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const router = useRouter()
 
@@ -94,7 +115,24 @@ export default function AdminDashboard() {
       if (data.success) {
         setProducts([data.product, ...products]);
         setIsAddingProduct(false);
-        setNewProduct({ name: '', category: '', price: '', stockQuantity: '', description: '', image: '', collection: '' });
+        setNewProduct({ 
+          name: '', 
+          sku: '',
+          category: '', 
+          collection: '',
+          price: '', 
+          originalPrice: '',
+          stockQuantity: '', 
+          lowStockThreshold: '3',
+          shortDescription: '',
+          description: '', 
+          image: '', 
+          status: 'DRAFT',
+          isFeatured: false,
+          isBestSeller: false,
+          tags: [],
+          variants: []
+        });
         alert("Product added successfully!");
       } else {
         alert("Failed to add product: " + data.error);
@@ -112,6 +150,7 @@ export default function AdminDashboard() {
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'products', label: 'Products', icon: Package },
+    { id: 'inventory', label: 'Inventory', icon: BarChart3 },
     { id: 'orders', label: 'Orders', icon: ShoppingBag },
     { id: 'partners', label: 'Partners', icon: Users },
     { id: 'promotions', label: 'Promotions', icon: Percent },
@@ -240,13 +279,121 @@ export default function AdminDashboard() {
             {isAddingProduct && (
               <div className="bg-surface-card border border-border-primary p-6 space-y-4 mb-6">
                 <h3 className="font-bold text-lg border-b border-border-primary pb-4">Create Product</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <input type="text" placeholder="Product Name" required value={newProduct.name} onChange={e => setNewProduct({...newProduct, name: e.target.value})} className="border border-border-primary p-2 text-sm bg-surface" />
-                  <input type="text" placeholder="Category (e.g. Shoes, Clothes)" required value={newProduct.category} onChange={e => setNewProduct({...newProduct, category: e.target.value})} className="border border-border-primary p-2 text-sm bg-surface" />
-                  <input type="text" placeholder="Collection (e.g. Summer 2026, Luxury)" required value={newProduct.collection} onChange={e => setNewProduct({...newProduct, collection: e.target.value})} className="border border-border-primary p-2 text-sm bg-surface" />
-                  <input type="number" placeholder="Price (ETB)" required value={newProduct.price} onChange={e => setNewProduct({...newProduct, price: e.target.value})} className="border border-border-primary p-2 text-sm bg-surface" />
-                  <input type="number" placeholder="Stock Quantity" value={newProduct.stockQuantity} onChange={e => setNewProduct({...newProduct, stockQuantity: e.target.value})} className="border border-border-primary p-2 text-sm bg-surface" />
-                  <textarea placeholder="Description" required value={newProduct.description} onChange={e => setNewProduct({...newProduct, description: e.target.value})} className="border border-border-primary p-2 text-sm bg-surface col-span-1 md:col-span-2" rows={3} />
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="md:col-span-2">
+                    <label className="block text-[10px] font-bold uppercase text-text-muted mb-1">Product Name</label>
+                    <input type="text" placeholder="e.g. Vintage Leather Jacket" required value={newProduct.name} onChange={e => setNewProduct(prev => ({...prev, name: e.target.value}))} className="w-full border border-border-primary p-2 text-sm bg-surface" />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase text-text-muted mb-1">SKU</label>
+                    <input type="text" placeholder="KS-VNTG-LJ" value={newProduct.sku} onChange={e => setNewProduct(prev => ({...prev, sku: e.target.value}))} className="w-full border border-border-primary p-2 text-sm bg-surface" />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase text-text-muted mb-1">Category</label>
+                    <input type="text" placeholder="e.g. Outerwear" required value={newProduct.category} onChange={e => setNewProduct(prev => ({...prev, category: e.target.value}))} className="w-full border border-border-primary p-2 text-sm bg-surface" />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase text-text-muted mb-1">Collection</label>
+                    <input type="text" placeholder="e.g. Winter 2026" required value={newProduct.collection} onChange={e => setNewProduct(prev => ({...prev, collection: e.target.value}))} className="w-full border border-border-primary p-2 text-sm bg-surface" />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase text-text-muted mb-1">Status</label>
+                    <select value={newProduct.status} onChange={e => setNewProduct(prev => ({...prev, status: e.target.value as 'DRAFT' | 'PUBLISHED' | 'ARCHIVED'}))} className="w-full border border-border-primary p-2 text-sm bg-surface">
+                      <option value="DRAFT">Draft</option>
+                      <option value="PUBLISHED">Published</option>
+                      <option value="ARCHIVED">Archived</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase text-text-muted mb-1">Sale Price (ETB)</label>
+                    <input type="number" placeholder="0.00" required value={newProduct.price} onChange={e => setNewProduct(prev => ({...prev, price: e.target.value}))} className="w-full border border-border-primary p-2 text-sm bg-surface font-mono" />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase text-text-muted mb-1">Base Price (ETB)</label>
+                    <input type="number" placeholder="Optional" value={newProduct.originalPrice} onChange={e => setNewProduct(prev => ({...prev, originalPrice: e.target.value}))} className="w-full border border-border-primary p-2 text-sm bg-surface font-mono" />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase text-text-muted mb-1">Stock Quantity</label>
+                    <input type="number" value={newProduct.stockQuantity} onChange={e => setNewProduct(prev => ({...prev, stockQuantity: e.target.value}))} className="w-full border border-border-primary p-2 text-sm bg-surface font-mono" />
+                  </div>
+
+                  <div className="md:col-span-3">
+                    <label className="block text-[10px] font-bold uppercase text-text-muted mb-1">Short Description</label>
+                    <input type="text" placeholder="One sentence summary" value={newProduct.shortDescription} onChange={e => setNewProduct(prev => ({...prev, shortDescription: e.target.value}))} className="w-full border border-border-primary p-2 text-sm bg-surface" />
+                  </div>
+
+                  <div className="md:col-span-3">
+                    <label className="block text-[10px] font-bold uppercase text-text-muted mb-1">Long Description</label>
+                    <textarea placeholder="Detailed product specifications..." required value={newProduct.description} onChange={e => setNewProduct(prev => ({...prev, description: e.target.value}))} className="w-full border border-border-primary p-2 text-sm bg-surface" rows={4} />
+                  </div>
+
+                  <div className="flex items-center space-x-6 md:col-span-3 py-2 border-y border-border-primary/50">
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <input type="checkbox" checked={newProduct.isFeatured} onChange={e => setNewProduct(prev => ({...prev, isFeatured: e.target.checked}))} className="rounded-none border-border-primary text-accent focus:ring-accent" />
+                      <span className="text-[10px] font-bold uppercase tracking-wider">Featured Product</span>
+                    </label>
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <input type="checkbox" checked={newProduct.isBestSeller} onChange={e => setNewProduct(prev => ({...prev, isBestSeller: e.target.checked}))} className="rounded-none border-border-primary text-accent focus:ring-accent" />
+                      <span className="text-[10px] font-bold uppercase tracking-wider">Best Seller</span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Variant Manager */}
+                <div className="space-y-4 pt-4">
+                  <div className="flex justify-between items-center">
+                    <h4 className="text-xs font-bold uppercase tracking-widest text-text-muted">Variants (Size/Colour)</h4>
+                    <button 
+                      type="button"
+                      onClick={() => setNewProduct(prev => ({
+                        ...prev, 
+                        variants: [...prev.variants, { sku: '', size: '', colour: '', stock: '0', price: '' }]
+                      }))}
+                      className="text-[10px] font-bold uppercase border border-border-primary px-2 py-1 hover:bg-surface-card"
+                    >
+                      + Add Variant
+                    </button>
+                  </div>
+                  {newProduct.variants.length > 0 && (
+                    <div className="space-y-2">
+                      {newProduct.variants.map((variant, idx) => (
+                        <div key={idx} className="grid grid-cols-5 gap-2 items-end bg-surface p-2 border border-border-primary border-dashed">
+                          <input type="text" placeholder="Size" value={variant.size} onChange={e => {
+                            const v = [...newProduct.variants];
+                            v[idx].size = e.target.value;
+                            setNewProduct(prev => ({...prev, variants: v}));
+                          }} className="text-[10px] p-1 bg-transparent border border-border-primary" />
+                          <input type="text" placeholder="Colour" value={variant.colour} onChange={e => {
+                            const v = [...newProduct.variants];
+                            v[idx].colour = e.target.value;
+                            setNewProduct(prev => ({...prev, variants: v}));
+                          }} className="text-[10px] p-1 bg-transparent border border-border-primary" />
+                          <input type="number" placeholder="Stock" value={variant.stock} onChange={e => {
+                            const v = [...newProduct.variants];
+                            v[idx].stock = e.target.value;
+                            setNewProduct(prev => ({...prev, variants: v}));
+                          }} className="text-[10px] p-1 bg-transparent border border-border-primary font-mono" />
+                          <input type="number" placeholder="Price" value={variant.price} onChange={e => {
+                            const v = [...newProduct.variants];
+                            v[idx].price = e.target.value;
+                            setNewProduct(prev => ({...prev, variants: v}));
+                          }} className="text-[10px] p-1 bg-transparent border border-border-primary font-mono" />
+                          <button 
+                            type="button"
+                            onClick={() => {
+                              const v = newProduct.variants.filter((_, i) => i !== idx);
+                              setNewProduct(prev => ({...prev, variants: v}));
+                            }}
+                            className="text-[10px] text-error font-bold uppercase text-center"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-bold mb-2">Product Image</label>
@@ -265,9 +412,8 @@ export default function AdminDashboard() {
                 <thead className="border-b border-border-primary text-text-muted">
                   <tr>
                     <th className="p-4">Image</th>
-                    <th className="p-4">Name</th>
+                    <th className="p-4">SKU / Name</th>
                     <th className="p-4">Category</th>
-                    <th className="p-4">Collection</th>
                     <th className="p-4">Status</th>
                     <th className="p-4">Stock</th>
                     <th className="p-4">Price</th>
@@ -283,17 +429,105 @@ export default function AdminDashboard() {
                           </div>
                         )}
                       </td>
-                      <td className="p-4 font-bold text-text-primary">{p.name}</td>
-                      <td className="p-4">{p.category}</td>
-                      <td className="p-4 text-xs">{p.collection}</td>
-                      <td className="p-4"><span className="bg-green-100 text-green-800 text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">{p.inStock ? 'In Stock' : 'Out of Stock'}</span></td>
-                      <td className="p-4 font-mono">{p.stockQuantity}</td>
-                      <td className="p-4 font-mono">ETB {p.price.toLocaleString()}</td>
+                      <td className="p-4">
+                        <p className="text-[9px] text-text-muted font-mono uppercase tracking-tighter mb-1">{p.sku || 'No SKU'}</p>
+                        <p className="font-bold text-text-primary text-sm">{p.name}</p>
+                      </td>
+                      <td className="p-4 text-xs">{p.category}</td>
+                      <td className="p-4">
+                        <span className={cn(
+                          "text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider",
+                          p.status === 'PUBLISHED' ? "bg-success/10 text-success" : 
+                          p.status === 'DRAFT' ? "bg-text-muted/10 text-text-muted" : "bg-error/10 text-error"
+                        )}>
+                          {p.status}
+                        </span>
+                      </td>
+                      <td className="p-4">
+                        <p className={cn(
+                          "font-mono font-bold text-sm",
+                          p.stockQuantity <= (p.lowStockThreshold || 3) ? "text-error" : "text-text-primary"
+                        )}>
+                          {p.stockQuantity}
+                        </p>
+                        <p className="text-[8px] text-text-muted uppercase">Units</p>
+                      </td>
+                      <td className="p-4">
+                        <p className="font-mono font-bold">ETB {p.price.toLocaleString()}</p>
+                        {p.originalPrice && <p className="text-[9px] text-text-muted line-through">ETB {p.originalPrice.toLocaleString()}</p>}
+                      </td>
                     </tr>
                   ))}
                   {products.length === 0 && (
-                    <tr><td colSpan={7} className="p-4 text-center text-text-muted">No products found.</td></tr>
+                    <tr><td colSpan={6} className="p-4 text-center text-text-muted">No products found.</td></tr>
                   )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )
+      case 'inventory':
+        return (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-display font-bold">Inventory Report</h2>
+              <div className="flex space-x-2">
+                <button className="border border-border-primary px-4 py-2 text-[10px] uppercase tracking-widest font-bold bg-surface-card">Filter: Low Stock</button>
+                <button className="bg-ink text-white px-4 py-2 text-[10px] uppercase tracking-widest font-bold">Download Report</button>
+              </div>
+            </div>
+            
+            <div className="bg-surface-card border border-border-primary overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead className="border-b border-border-primary text-text-muted">
+                  <tr>
+                    <th className="p-4">Product / Variant</th>
+                    <th className="p-4">SKU</th>
+                    <th className="p-4 text-center">Current Stock</th>
+                    <th className="p-4 text-center">Threshold</th>
+                    <th className="p-4">Status</th>
+                    <th className="p-4">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border-primary">
+                  {products.map(p => (
+                    <React.Fragment key={p.id}>
+                      <tr className="bg-surface/30">
+                        <td className="p-4">
+                          <p className="font-bold">{p.name}</p>
+                          <p className="text-[10px] text-text-muted uppercase">{p.category}</p>
+                        </td>
+                        <td className="p-4 font-mono text-xs">{p.sku || 'N/A'}</td>
+                        <td className="p-4 text-center font-mono font-bold">{p.stockQuantity}</td>
+                        <td className="p-4 text-center font-mono text-text-muted">{p.lowStockThreshold || 3}</td>
+                        <td className="p-4">
+                          {p.stockQuantity <= (p.lowStockThreshold || 3) ? 
+                            <span className="text-error text-[10px] font-bold uppercase tracking-widest">Reorder Now</span> : 
+                            <span className="text-success text-[10px] font-bold uppercase tracking-widest">Healthy</span>
+                          }
+                        </td>
+                        <td className="p-4">
+                          <button className="text-accent text-[10px] font-bold uppercase hover:underline">Adjust</button>
+                        </td>
+                      </tr>
+                      {p.variants?.map((v) => (
+                        <tr key={v.id} className="text-[11px] border-l-2 border-accent/20">
+                          <td className="p-4 pl-8 text-text-muted italic">
+                            — Variant: {v.size} {v.colour}
+                          </td>
+                          <td className="p-4 font-mono">{v.sku || 'N/A'}</td>
+                          <td className="p-4 text-center font-mono">{v.stock}</td>
+                          <td className="p-4 text-center text-text-muted font-mono">—</td>
+                          <td className="p-4">
+                            {v.stock <= 2 ? <span className="text-warning">Low</span> : <span>OK</span>}
+                          </td>
+                          <td className="p-4">
+                            <button className="text-accent/70 hover:underline">Adjust</button>
+                          </td>
+                        </tr>
+                      ))}
+                    </React.Fragment>
+                  ))}
                 </tbody>
               </table>
             </div>
