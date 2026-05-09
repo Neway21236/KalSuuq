@@ -46,7 +46,7 @@ export default function ImageUpload({ value, onChange, onRemove }: ImageUploadPr
           </div>
         ))}
       </div>
-      <CldUploadWidget onUpload={onUpload} uploadPreset="kalsuq_preset" options={{ multiple: true }}>
+      <CldUploadWidget onUpload={onUpload} uploadPreset={process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || "kalsuq_preset"} options={{ multiple: true }}>
         {({ open }) => {
           const onClick = (e: React.MouseEvent<HTMLButtonElement>) => {
             e.preventDefault();
