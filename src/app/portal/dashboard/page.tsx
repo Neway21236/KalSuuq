@@ -125,6 +125,46 @@ export default function PartnerDashboard() {
             </div>
           </div>
         )
+      case 'orders':
+        return (
+          <div className="bg-[#1A1614] border border-border-dark overflow-hidden shadow-xl">
+            <div className="p-6 border-b border-border-dark">
+              <h3 className="font-display text-xl text-text-primary">Attributed Orders</h3>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead className="border-b border-border-dark text-text-muted">
+                  <tr>
+                    <th className="p-4 font-bold uppercase tracking-widest text-[10px]">Date</th>
+                    <th className="p-4 font-bold uppercase tracking-widest text-[10px]">Order Value</th>
+                    <th className="p-4 font-bold uppercase tracking-widest text-[10px]">Commission</th>
+                    <th className="p-4 font-bold uppercase tracking-widest text-[10px]">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border-dark">
+                  <tr><td colSpan={4} className="p-8 text-center text-text-muted italic">Orders will appear here once tracked.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )
+      case 'assets':
+        return (
+          <div className="bg-[#1A1614] border border-border-dark p-8 shadow-xl">
+            <h3 className="font-display text-xl text-text-primary mb-6">Creative Assets & Drops</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="border border-border-dark p-6 space-y-4">
+                <h4 className="font-bold text-accent uppercase tracking-widest text-[10px]">Brand Kits</h4>
+                <p className="text-sm text-text-muted">Download high-res logos, product images, and pre-written promotional copy for your channels.</p>
+                <button className="bg-surface text-text-primary px-4 py-2 text-xs font-bold uppercase tracking-widest border border-border-dark hover:border-accent">Download Assets .ZIP</button>
+              </div>
+              <div className="border border-border-dark p-6 space-y-4">
+                <h4 className="font-bold text-accent uppercase tracking-widest text-[10px]">New Drop Preview</h4>
+                <p className="text-sm text-text-muted">No upcoming drops assigned for preview yet. Check back next week.</p>
+              </div>
+            </div>
+          </div>
+        )
       default:
         return (
           <div className="bg-[#1A1614] border border-border-dark p-20 text-center shadow-xl">

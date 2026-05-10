@@ -834,20 +834,72 @@ export default function AdminDashboard() {
                     <th className="p-4">Audience</th>
                     <th className="p-4">Status</th>
                     <th className="p-4">Date</th>
+                    <th className="p-4">Action</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border-primary">
                   {partners.map(p => (
                     <tr key={p.id}>
-                      <td className="p-4 font-bold">{p.fullName}</td>
+                      <td className="p-4 font-bold">{p.fullName}<br/><span className="text-[10px] text-text-muted font-normal">{p.email}</span></td>
                       <td className="p-4">{p.platform}</td>
                       <td className="p-4">{p.audienceSize}</td>
-                      <td className="p-4"><span className="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded-full font-bold">{p.status}</span></td>
+                      <td className="p-4">
+                        <span className={cn(
+                          "text-xs px-2 py-0.5 rounded-full font-bold uppercase tracking-widest",
+                          p.status === 'APPROVED' ? "bg-success/10 text-success" :
+                          p.status === 'REJECTED' ? "bg-error/10 text-error" :
+                          "bg-warning/10 text-warning"
+                        )}>{p.status}</span>
+                      </td>
                       <td className="p-4 text-text-muted">{new Date(p.createdAt).toLocaleDateString()}</td>
+                      <td className="p-4 space-x-2">
+                        {p.status === 'PENDING' && (
+                          <>
+                            <button 
+                              onClick={async () => {
+                                const rate = prompt("Enter commission rate (%)", "10");
+                                if (rate === null) return;
+                                const res = await fetch(`/api/admin/partners/${p.id}`, {
+                                  method: 'PATCH',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ status: 'APPROVED', commissionRate: parseFloat(rate) || 10 })
+                                });
+                                const data = await res.json();
+                                if (data.success) {
+                                  setPartners(partners.map(partner => partner.id === p.id ? { ...partner, status: 'APPROVED' } : partner));
+                                  toast('Partner Approved!', 'success');
+                                } else {
+                                  toast('Failed to approve', 'error');
+                                }
+                              }}
+                              className="text-[10px] font-bold uppercase tracking-widest text-success hover:underline"
+                            >
+                              Approve
+                            </button>
+                            <button 
+                              onClick={async () => {
+                                const res = await fetch(`/api/admin/partners/${p.id}`, {
+                                  method: 'PATCH',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ status: 'REJECTED' })
+                                });
+                                const data = await res.json();
+                                if (data.success) {
+                                  setPartners(partners.map(partner => partner.id === p.id ? { ...partner, status: 'REJECTED' } : partner));
+                                  toast('Partner Rejected', 'success');
+                                }
+                              }}
+                              className="text-[10px] font-bold uppercase tracking-widest text-error hover:underline"
+                            >
+                              Reject
+                            </button>
+                          </>
+                        )}
+                      </td>
                     </tr>
                   ))}
                   {partners.length === 0 && (
-                    <tr><td colSpan={5} className="p-4 text-center text-text-muted">No applications found.</td></tr>
+                    <tr><td colSpan={6} className="p-4 text-center text-text-muted">No applications found.</td></tr>
                   )}
                 </tbody>
               </table>
