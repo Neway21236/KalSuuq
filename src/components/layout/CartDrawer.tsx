@@ -20,14 +20,18 @@ export default function CartDrawer() {
     updateQuantity,
     removeItem, 
     getSubtotal,
-    referralCode 
+    referralCode
   } = useCartStore()
+  
+  const [outOfStockItems, setOutOfStockItems] = useState<string[]>([])
   interface Product {
     id: string;
     name: string;
     slug: string;
     price: number;
     image: string;
+    inStock?: boolean;
+    stockQuantity?: number;
   }
 
   const [upsellProducts, setUpsellProducts] = useState<Product[]>([])
@@ -47,7 +51,30 @@ export default function CartDrawer() {
         console.error("Upsell fetch failed", err)
       }
     }
-    if (isOpen) fetchUpsell()
+    const validateStock = async () => {
+      if (items.length === 0) return
+      try {
+        const itemIds = items.map(i => i.productId)
+        const res = await fetch(`/api/products/validate?ids=${itemIds.join(',')}`)
+        const data = await res.json()
+        if (data.success) {
+          const unavailable = items
+            .filter(item => {
+              const p = data.products.find((p: Product) => p.id === item.productId)
+              return !p || !p.inStock || (p.stockQuantity !== undefined && p.stockQuantity < item.quantity)
+            })
+            .map(item => `${item.productId}-${item.size}-${item.colour}`)
+          setOutOfStockItems(unavailable)
+        }
+      } catch (err) {
+        console.error("Stock validation failed", err)
+      }
+    }
+
+    if (isOpen) {
+      fetchUpsell()
+      validateStock()
+    }
   }, [isOpen, items])
 
   const discount = referralCode ? getSubtotal() * 0.1 : 0 // 10% discount for referral codes for now
@@ -152,10 +179,17 @@ export default function CartDrawer() {
                         <div className="flex-1 flex flex-col justify-between py-2">
                           <div className="space-y-4">
                             <div className="flex justify-between items-start">
-                              <h3 className={cn(
-                                "text-xl text-text-primary font-bold tracking-tight leading-tight group-hover:text-accent transition-colors",
-                                language === 'am' && "font-ethiopic"
-                              )}>{item.name}</h3>
+                              <div className="space-y-1">
+                                <h3 className={cn(
+                                  "text-xl text-text-primary font-bold tracking-tight leading-tight group-hover:text-accent transition-colors",
+                                  language === 'am' && "font-ethiopic"
+                                )}>{item.name}</h3>
+                                {outOfStockItems.includes(`${item.productId}-${item.size}-${item.colour}`) && (
+                                  <p className="text-[10px] text-error font-bold uppercase tracking-widest animate-pulse">
+                                    {language === 'en' ? 'Out of Stock' : 'ክምችት አልቋል'}
+                                  </p>
+                                )}
+                              </div>
                               <button 
                                 onClick={() => removeItem(item.productId, item.size, item.colour)}
                                 className="text-text-secondary hover:text-error transition-all p-2 hover:bg-error/10 active:scale-75"
@@ -280,10 +314,17 @@ export default function CartDrawer() {
                 </div>
                 <div className="space-y-6">
                   <Link
-                    href="/checkout"
-                    onClick={closeCart}
+                    href={outOfStockItems.length > 0 ? '#' : "/checkout"}
+                    onClick={(e) => {
+                      if (outOfStockItems.length > 0) {
+                        e.preventDefault()
+                        return
+                      }
+                      closeCart()
+                    }}
                     className={cn(
                       "block w-full bg-accent text-white dark:text-ink text-center py-7 text-[10px] font-bold tracking-[0.5em] uppercase transition-all hover:bg-accent-hover shadow-2xl active:scale-[0.98]",
+                      outOfStockItems.length > 0 && "opacity-50 cursor-not-allowed grayscale",
                       language === 'am' && "font-ethiopic tracking-normal text-sm py-5"
                     )}
                   >
