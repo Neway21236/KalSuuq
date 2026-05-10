@@ -3,12 +3,13 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Moon, Sun, ShoppingBag, Menu, X, ChevronRight } from 'lucide-react'
+import { Moon, Sun, ShoppingBag, Menu, X, ChevronRight, Search } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useLanguageStore } from '@/store/useLanguageStore'
 import { useCartStore } from '@/store/useCartStore'
 import { cn } from '@/lib/utils'
 import { motion, AnimatePresence } from 'framer-motion'
+import SearchOverlay from './SearchOverlay'
 
 const navLinks = [
   { name: 'Shop', nameAm: 'ይግዙ', href: '/shop' },
@@ -19,6 +20,7 @@ const navLinks = [
 
 export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [mounted, setMounted] = useState(false)
   const pathname = usePathname()
@@ -103,10 +105,20 @@ export default function Navbar() {
               {theme === 'dark' ? <Sun size={20} strokeWidth={1.5} /> : <Moon size={20} strokeWidth={1.5} />}
             </button>
             
+            {/* Search Icon - Hidden on Mobile */}
+            <button 
+              aria-label="Search products"
+              onClick={() => setIsSearchOpen(true)}
+              className="hidden md:flex p-2.5 text-text-primary hover:text-accent transition-all hover:bg-accent/5 rounded-none border border-transparent hover:border-accent/20"
+            >
+              <Search size={20} strokeWidth={1.5} />
+            </button>
+
+            {/* Bag Icon - Hidden on Mobile per FR-NAV-03 */}
             <button 
               aria-label={`Open Cart, ${getItemCount()} items`}
               onClick={openCart}
-              className="relative p-2.5 text-text-primary hover:text-accent transition-all hover:bg-accent/5 border border-transparent hover:border-accent/20"
+              className="hidden md:flex relative p-2.5 text-text-primary hover:text-accent transition-all hover:bg-accent/5 border border-transparent hover:border-accent/20"
             >
               <ShoppingBag size={22} strokeWidth={1.5} />
               {getItemCount() > 0 && (
@@ -163,13 +175,40 @@ export default function Navbar() {
                 <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="font-display font-bold text-2xl tracking-[0.4em] text-text-primary uppercase">
                   Kalsuq<span className="text-accent">.</span>
                 </Link>
-                <button 
-                  aria-label="Close mobile menu" 
-                  onClick={() => setIsMobileMenuOpen(false)} 
-                  className="text-text-primary hover:text-accent transition-all p-2 rounded-full border border-border-primary/50 bg-surface-card/50 backdrop-blur-sm shadow-xl"
-                >
-                  <X size={28} strokeWidth={1.5} />
-                </button>
+                <div className="flex space-x-2">
+                  <button 
+                    aria-label="Search products"
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      setIsSearchOpen(true);
+                    }}
+                    className="text-text-primary hover:text-accent transition-all p-2 rounded-full border border-border-primary/50 bg-surface-card/50 backdrop-blur-sm shadow-xl"
+                  >
+                    <Search size={22} strokeWidth={1.5} />
+                  </button>
+                  <button 
+                    aria-label={`Open Cart, ${getItemCount()} items`}
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      openCart();
+                    }}
+                    className="relative text-text-primary hover:text-accent transition-all p-2 rounded-full border border-border-primary/50 bg-surface-card/50 backdrop-blur-sm shadow-xl"
+                  >
+                    <ShoppingBag size={22} strokeWidth={1.5} />
+                    {getItemCount() > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-accent text-white dark:text-ink text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center shadow-lg">
+                        {getItemCount()}
+                      </span>
+                    )}
+                  </button>
+                  <button 
+                    aria-label="Close mobile menu" 
+                    onClick={() => setIsMobileMenuOpen(false)} 
+                    className="text-text-primary hover:text-accent transition-all p-2 rounded-full border border-border-primary/50 bg-surface-card/50 backdrop-blur-sm shadow-xl"
+                  >
+                    <X size={28} strokeWidth={1.5} />
+                  </button>
+                </div>
               </div>
 
               <nav className="flex flex-col space-y-2 relative z-10">
@@ -285,6 +324,8 @@ export default function Navbar() {
           </>
         )}
       </AnimatePresence>
+
+      <SearchOverlay isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </>
   )
 }
