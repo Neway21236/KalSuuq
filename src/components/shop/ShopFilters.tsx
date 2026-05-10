@@ -7,43 +7,44 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useLanguageStore } from '@/store/useLanguageStore'
 
 interface ShopFiltersProps {
-  initialCategory?: string
-  initialSort?: string
+  activeCategory: string
+  activePrice: string | null
+  activeSort: string
+  stockOnly: boolean
   onCategoryChange: (category: string) => void
   onPriceChange: (price: string | null) => void
   onSortChange: (sort: string) => void
-  onStockOnlyChange?: (stockOnly: boolean) => void
+  onStockOnlyChange: (stockOnly: boolean) => void
 }
 
-export default function ShopFilters({ initialCategory, initialSort, onCategoryChange, onPriceChange, onSortChange, onStockOnlyChange }: ShopFiltersProps) {
+export default function ShopFilters({ 
+  activeCategory, 
+  activePrice, 
+  activeSort, 
+  stockOnly,
+  onCategoryChange, 
+  onPriceChange, 
+  onSortChange, 
+  onStockOnlyChange 
+}: ShopFiltersProps) {
   const { language } = useLanguageStore()
-  const [activeCategory, setActiveCategory] = useState(initialCategory || (language === 'en' ? 'All' : 'ሁሉም'))
-  const [activePrice, setActivePrice] = useState<string | null>(null)
-  const [activeSort, setActiveSort] = useState(initialSort || (language === 'en' ? 'Newest' : 'አዲስ'))
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false)
-  const [stockOnly, setStockOnly] = useState(false)
 
   const handleCategoryClick = (cat: string) => {
-    setActiveCategory(cat)
     onCategoryChange(cat)
   }
 
   const handlePriceClick = (range: string) => {
-    const newPrice = activePrice === range ? null : range
-    setActivePrice(newPrice)
-    onPriceChange(newPrice)
+    onPriceChange(activePrice === range ? null : range)
   }
 
   const handleSortClick = (opt: string) => {
-    setActiveSort(opt)
     onSortChange(opt)
     setIsMobileFilterOpen(false)
   }
 
   const handleStockToggle = () => {
-    const next = !stockOnly
-    setStockOnly(next)
-    onStockOnlyChange?.(next)
+    onStockOnlyChange(!stockOnly)
   }
 
   const categories = language === 'en' 
@@ -73,7 +74,7 @@ export default function ShopFilters({ initialCategory, initialSort, onCategoryCh
                     onClick={() => handleCategoryClick(cat)}
                     className={cn(
                       "px-5 py-2.5 text-[10px] uppercase font-bold tracking-[0.2em] transition-all border",
-                      activeCategory === cat 
+                      activeCategory.toLowerCase() === cat.toLowerCase() || activeCategory === cat
                         ? "bg-accent text-white dark:text-ink border-accent shadow-lg shadow-accent/10" 
                         : "bg-surface-card text-text-primary border-border-primary hover:border-accent/40",
                       language === 'am' && "font-ethiopic tracking-normal text-xs"
@@ -120,7 +121,7 @@ export default function ShopFilters({ initialCategory, initialSort, onCategoryCh
             {/* Sort Dropdown */}
             <div className="relative group">
               <button className={cn(
-                "flex items-center space-x-4 px-6 py-2.5 border border-border-primary bg-surface-card text-[10px] font-bold uppercase tracking-[0.2em] text-text-primary hover:border-accent transition-all",
+                "flex items-center space-x-4 px-6 py-2.5 border border-border-primary bg-surface-card text-[10px] font-bold uppercase tracking-[0.2em] text-text-primary hover:border-accent transition-all min-w-[200px] justify-between",
                 language === 'am' && "font-ethiopic tracking-normal text-xs"
               )}>
                 <span>{language === 'en' ? `Sort: ${activeSort}` : `ቅደም ተከተል፡ ${activeSort}`}</span>
@@ -148,20 +149,23 @@ export default function ShopFilters({ initialCategory, initialSort, onCategoryCh
             <button 
               onClick={() => setIsMobileFilterOpen(true)}
               className={cn(
-                "flex items-center space-x-3 px-6 py-2.5 border border-border-primary bg-surface-card text-[10px] font-bold uppercase tracking-[0.2em] text-text-primary active:scale-95 transition-all",
+                "flex items-center space-x-3 px-6 py-2.5 border border-border-primary bg-surface-card text-[10px] font-bold uppercase tracking-[0.2em] text-text-primary active:scale-95 transition-all flex-1 justify-center mr-2",
                 language === 'am' && "font-ethiopic tracking-normal text-xs"
               )}
             >
               <Filter size={14} className="text-accent" />
-              <span>{language === 'en' ? 'Filters' : 'ማጣሪያዎች'}</span>
+              <span>{language === 'en' ? 'Filters & Sort' : 'ማጣሪያዎች እና ደርድር'}</span>
             </button>
-            <div className={cn(
-              "flex items-center space-x-3 px-6 py-2.5 border border-border-primary bg-surface-card text-[10px] font-bold uppercase tracking-[0.2em] text-text-primary active:scale-95 transition-all",
-              language === 'am' && "font-ethiopic tracking-normal text-xs"
-            )}>
-              <span>{language === 'en' ? 'Sort' : 'ደርድር'}</span>
-              <ChevronDown size={14} className="text-accent" />
-            </div>
+            <button 
+              onClick={handleStockToggle}
+              className={cn(
+                "px-6 py-2.5 border border-border-primary bg-surface-card text-[10px] font-bold uppercase tracking-[0.2em] text-text-primary active:scale-95 transition-all flex-1 justify-center",
+                stockOnly && "bg-accent text-white border-accent",
+                language === 'am' && "font-ethiopic tracking-normal text-xs"
+              )}
+            >
+              {language === 'en' ? 'In Stock' : 'ያለ ዕቃ'}
+            </button>
           </div>
         </div>
       </div>
@@ -189,7 +193,7 @@ export default function ShopFilters({ initialCategory, initialSort, onCategoryCh
                   <h3 className={cn(
                     "font-display text-3xl text-text-primary tracking-tight font-semibold",
                     language === 'am' && "font-ethiopic"
-                  )}>{language === 'en' ? 'Filters' : 'ማጣሪያዎች'}</h3>
+                  )}>{language === 'en' ? 'Filters & Sort' : 'ማጣሪያዎች እና ደርድር'}</h3>
                   <button onClick={() => setIsMobileFilterOpen(false)} className="text-text-secondary hover:text-accent transition-colors">
                     <X size={28} />
                   </button>
@@ -207,13 +211,37 @@ export default function ShopFilters({ initialCategory, initialSort, onCategoryCh
                         onClick={() => handleCategoryClick(cat)}
                         className={cn(
                           "py-4 text-[10px] font-bold uppercase tracking-[0.2em] border transition-all",
-                          activeCategory === cat 
+                          activeCategory.toLowerCase() === cat.toLowerCase() || activeCategory === cat
                             ? "bg-accent text-white dark:text-ink border-accent shadow-lg shadow-accent/10" 
                             : "bg-surface-card text-text-primary border-border-primary",
                           language === 'am' && "font-ethiopic tracking-normal text-xs"
                         )}
                       >
                         {cat}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  <h4 className={cn(
+                    "text-[10px] tracking-[0.3em] text-accent uppercase font-bold",
+                    language === 'am' && "font-ethiopic tracking-normal"
+                  )}>{language === 'en' ? 'Sort By' : 'ደርድር'}</h4>
+                  <div className="grid grid-cols-1 gap-3">
+                    {sortOptions.map((opt) => (
+                      <button
+                        key={opt}
+                        onClick={() => handleSortClick(opt)}
+                        className={cn(
+                          "w-full py-4 text-left px-6 text-[10px] font-bold uppercase tracking-[0.2em] border transition-all",
+                          activeSort === opt 
+                            ? "bg-accent text-white dark:text-ink border-accent shadow-lg shadow-accent/10" 
+                            : "bg-surface-card text-text-primary border-border-primary",
+                          language === 'am' && "font-ethiopic tracking-normal text-xs"
+                        )}
+                      >
+                        {opt}
                       </button>
                     ))}
                   </div>

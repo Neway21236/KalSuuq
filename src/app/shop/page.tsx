@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, Suspense } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import ShopFilters from '@/components/shop/ShopFilters'
 import ProductCard, { Product } from '@/components/product/ProductCard'
 import Image from 'next/image'
@@ -14,6 +14,8 @@ const PRODUCTS_PER_PAGE = 12
 function ShopPageInner() {
   const { language } = useLanguageStore()
   const searchParams = useSearchParams()
+  const router = useRouter()
+  const pathname = usePathname()
 
   const [products, setProducts] = useState<Product[]>([])
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
@@ -22,7 +24,7 @@ function ShopPageInner() {
 
   // Read initial state from URL params (FR-SHOP-02, FR-SHOP-03)
   const urlCategory = searchParams.get('category') || 'All'
-  const urlSort = searchParams.get('sort') === 'best-selling' ? 'Best Selling' : 'Newest'
+  const urlSort = searchParams.get('sort') === 'best-selling' ? 'Best Selling' : (searchParams.get('sort') || 'Newest')
 
   const [activeCategory, setActiveCategory] = useState(() => {
     const c = urlCategory.charAt(0).toUpperCase() + urlCategory.slice(1)
@@ -31,6 +33,28 @@ function ShopPageInner() {
   const [activePrice, setActivePrice] = useState<string | null>(null)
   const [activeSort, setActiveSort] = useState(urlSort)
   const [stockOnly, setStockOnly] = useState(false)
+
+  // Sync state with URL (FR-SHOP-03)
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString())
+    
+    if (activeCategory !== 'All' && activeCategory !== 'ሁሉም') {
+      params.set('category', activeCategory.toLowerCase())
+    } else {
+      params.delete('category')
+    }
+
+    if (activeSort === 'Best Selling') {
+      params.set('sort', 'best-selling')
+    } else if (activeSort !== 'Newest' && activeSort !== 'አዲስ') {
+      params.set('sort', activeSort.toLowerCase().replace(/\s+/g, '-'))
+    } else {
+      params.delete('sort')
+    }
+
+    // Use replace to avoid bloating history during fast filtering
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false })
+  }, [activeCategory, activeSort, pathname, router, searchParams])
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -112,8 +136,10 @@ function ShopPageInner() {
 
       {/* Sticky Filters (FR-SHOP-02, FR-SHOP-04) */}
       <ShopFilters
-        initialCategory={activeCategory}
-        initialSort={activeSort}
+        activeCategory={activeCategory}
+        activePrice={activePrice}
+        activeSort={activeSort}
+        stockOnly={stockOnly}
         onCategoryChange={setActiveCategory}
         onPriceChange={setActivePrice}
         onSortChange={setActiveSort}
@@ -131,7 +157,10 @@ function ShopPageInner() {
             <Link
               key={banner.name}
               href={`/shop?category=${banner.name.toLowerCase()}`}
-              onClick={() => setActiveCategory(banner.name)}
+              onClick={(e) => {
+                e.preventDefault();
+                setActiveCategory(banner.name);
+              }}
               className="group relative aspect-[16/9] overflow-hidden bg-surface-card border border-border-primary shadow-sm hover:shadow-2xl transition-all duration-700"
             >
               <Image src={banner.img} alt={banner.name} fill className="object-cover transition-transform duration-1000 group-hover:scale-110" />
