@@ -31,7 +31,11 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
     const items: CartItem[] = body.items;
-    const { deliveryZone, paymentMethod, deliveryFee } = body;
+    const { deliveryZone, paymentMethod, deliveryFee, referralCode } = body;
+    
+    // Cookie overrides if no manual code (FR-REF-03)
+    const cookieCode = req.cookies.get('kalsuq-ref')?.value;
+    const partnerCode = referralCode || cookieCode || null;
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       logger.warn({ action: 'checkout_failed', metadata: { reason: 'Empty cart' } });
@@ -153,7 +157,7 @@ export async function POST(req: NextRequest) {
       }
 
       // 3. Create the order
-      return await tx.order.create({
+      const order = await tx.order.create({
         data: {
           orderNumber: orderId,
           total: secureServerTotal,
@@ -163,6 +167,7 @@ export async function POST(req: NextRequest) {
           customerName: body.customerName || "Guest Customer",
           customerPhone: body.customerPhone || "N/A",
           customerEmail: body.customerEmail,
+          partnerCode: partnerCode || null,
           items: {
             create: secureItemsToCreate.map(i => ({
               productId: i.productId,
@@ -176,6 +181,8 @@ export async function POST(req: NextRequest) {
           }
         }
       });
+
+      return order;
     });
 
     const serverTotal = secureServerTotal; // map for the rest of the file

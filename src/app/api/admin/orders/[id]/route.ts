@@ -76,6 +76,11 @@ export async function PATCH(
     });
 
     // TODO: FR-ORD-03 Trigger WhatsApp/SMS Notification
+    
+    // Process commission if applicable
+    if (orderStatus === 'PAYMENT_CONFIRMED' || orderStatus === 'DELIVERED') {
+      import('@/lib/commission').then(m => m.processCommission(id)).catch(console.error);
+    }
 
     return NextResponse.json({ success: true, order: updatedOrder });
   } catch (error) {

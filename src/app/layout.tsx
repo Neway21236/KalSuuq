@@ -5,6 +5,7 @@ import GlobalUI, { GlobalFooter } from "@/components/layout/GlobalUI";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { ToastProvider } from "@/components/ui/Toast";
 import { ErrorBoundary } from "@/components/providers/ErrorBoundary";
+import ReferralTracker from "@/components/ReferralTracker";
 
 const cormorant = Cormorant_Garamond({
   subsets: ['latin'],
@@ -85,6 +86,7 @@ export default function RootLayout({
           <ToastProvider>
             <ErrorBoundary>
               <GlobalUI />
+              <ReferralTracker />
               <main className="flex-grow relative">{children}</main>
               <GlobalFooter />
             </ErrorBoundary>
