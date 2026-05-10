@@ -59,13 +59,13 @@ export default function Hero() {
               {t.cta}
             </Link>
             <Link 
-              href="/partners" 
+              href="/shop?category=bundles" 
               className={cn(
                 "w-full sm:w-auto border border-border-primary bg-ink/30 backdrop-blur-md text-text-primary px-12 py-6 text-[10px] font-bold tracking-[0.3em] uppercase transition-all hover:border-accent hover:text-accent text-center active:scale-95",
                 language === 'am' && "font-ethiopic text-sm py-5 tracking-normal"
               )}
             >
-              {language === 'en' ? 'Partner Program' : 'የአጋርነት ፕሮግራም'}
+              {language === 'en' ? 'View Bundles' : 'ጥቅሎችን ይመልከቱ'}
             </Link>
           </div>
         </div>

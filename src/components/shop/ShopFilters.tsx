@@ -7,17 +7,21 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useLanguageStore } from '@/store/useLanguageStore'
 
 interface ShopFiltersProps {
+  initialCategory?: string
+  initialSort?: string
   onCategoryChange: (category: string) => void
   onPriceChange: (price: string | null) => void
   onSortChange: (sort: string) => void
+  onStockOnlyChange?: (stockOnly: boolean) => void
 }
 
-export default function ShopFilters({ onCategoryChange, onPriceChange, onSortChange }: ShopFiltersProps) {
+export default function ShopFilters({ initialCategory, initialSort, onCategoryChange, onPriceChange, onSortChange, onStockOnlyChange }: ShopFiltersProps) {
   const { language } = useLanguageStore()
-  const [activeCategory, setActiveCategory] = useState(language === 'en' ? 'All' : 'ሁሉም')
+  const [activeCategory, setActiveCategory] = useState(initialCategory || (language === 'en' ? 'All' : 'ሁሉም'))
   const [activePrice, setActivePrice] = useState<string | null>(null)
-  const [activeSort, setActiveSort] = useState(language === 'en' ? 'Newest' : 'አዲስ')
+  const [activeSort, setActiveSort] = useState(initialSort || (language === 'en' ? 'Newest' : 'አዲስ'))
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false)
+  const [stockOnly, setStockOnly] = useState(false)
 
   const handleCategoryClick = (cat: string) => {
     setActiveCategory(cat)
@@ -34,6 +38,12 @@ export default function ShopFilters({ onCategoryChange, onPriceChange, onSortCha
     setActiveSort(opt)
     onSortChange(opt)
     setIsMobileFilterOpen(false)
+  }
+
+  const handleStockToggle = () => {
+    const next = !stockOnly
+    setStockOnly(next)
+    onStockOnlyChange?.(next)
   }
 
   const categories = language === 'en' 
@@ -92,6 +102,19 @@ export default function ShopFilters({ onCategoryChange, onPriceChange, onSortCha
                   </button>
                 ))}
               </div>
+              {/* In Stock Toggle */}
+              <button
+                onClick={handleStockToggle}
+                className={cn(
+                  "flex items-center space-x-2 px-4 py-2.5 text-[10px] uppercase font-bold tracking-[0.2em] transition-all border",
+                  stockOnly
+                    ? "bg-accent text-white dark:text-ink border-accent"
+                    : "bg-surface-card text-text-primary border-border-primary hover:border-accent/40",
+                  language === 'am' && "font-ethiopic tracking-normal text-xs"
+                )}
+              >
+                <span>{language === 'en' ? 'In Stock' : 'ያለ ዕቃ'}</span>
+              </button>
             </div>
 
             {/* Sort Dropdown */}
