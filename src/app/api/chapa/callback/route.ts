@@ -60,7 +60,7 @@ async function processPaymentConfirmation(orderId: string) {
   }
 
   // 2. Update Order Status
-  await prisma.order.update({
+  const updatedOrder = await prisma.order.update({
     where: { orderNumber: orderId },
     data: {
       paymentStatus: "PAID",
@@ -69,4 +69,7 @@ async function processPaymentConfirmation(orderId: string) {
   });
 
   logger.info({ action: 'payment_confirmed', orderId });
+  
+  // 3. Process Commission
+  import('@/lib/commission').then(m => m.processCommission(updatedOrder.id)).catch(console.error);
 }
