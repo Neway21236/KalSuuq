@@ -3,16 +3,8 @@ import { getProducts } from '@/lib/products'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://kalsuq.com'
-  const products = await getProducts()
 
-  const productUrls = products.map((product) => ({
-    url: `${baseUrl}/shop/${product.slug}`,
-    lastModified: new Date(),
-    changeFrequency: 'weekly' as const,
-    priority: 0.8,
-  }))
-
-  return [
+  const staticRoutes: MetadataRoute.Sitemap = [
     {
       url: baseUrl,
       lastModified: new Date(),
@@ -31,6 +23,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'monthly',
       priority: 0.7,
     },
-    ...productUrls,
   ]
+
+  // Gracefully degrade: if the DB is unreachable at build time, return static routes only
+  try {
+    const products = await getProducts()
+    const productUrls = products.map((product) => ({
+      url: `${baseUrl}/shop/${product.slug}`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.8,
+    }))
+    return [...staticRoutes, ...productUrls]
+  } catch {
+    console.warn('[sitemap] Could not fetch products — returning static routes only.')
+    return staticRoutes
+  }
 }
+

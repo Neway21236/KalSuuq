@@ -46,6 +46,10 @@ export default withSentryConfig(nextConfig, {
   silent: true,
   org: "kalsuq",
   project: "javascript-nextjs",
+  // SENTRY_AUTH_TOKEN must be set in CI/production env vars for source maps to upload.
+  // Get it from: https://sentry.io → Settings → Auth Tokens
+  // Add to Vercel: Settings → Environment Variables → SENTRY_AUTH_TOKEN
+  authToken: process.env.SENTRY_AUTH_TOKEN,
 }, {
   // For all available options, see:
   // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/

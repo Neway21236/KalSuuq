@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { AlertCircle } from 'lucide-react';
+import * as Sentry from '@sentry/nextjs';
 import { useLanguageStore } from '@/store/useLanguageStore';
 
 export default function GlobalError({
@@ -15,8 +16,8 @@ export default function GlobalError({
   const { language } = useLanguageStore();
 
   useEffect(() => {
-    // Log the error to an error reporting service (e.g. Sentry)
-    console.error('[GLOBAL_ERROR_BOUNDARY]', error);
+    // Report to Sentry so storefront errors are visible in production
+    Sentry.captureException(error);
   }, [error]);
 
   return (

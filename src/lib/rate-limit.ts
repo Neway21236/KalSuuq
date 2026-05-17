@@ -1,10 +1,13 @@
 /**
- * In-Memory Rate Limiter (Risk #2 Fix)
+ * In-Memory Rate Limiter
  * 
- * Prevents inventory denial-of-service by limiting order submissions per IP.
- * This is an in-memory implementation suitable for single-server deployments.
+ * Prevents brute-force and spam attacks on critical endpoints.
  * 
- * For production at scale (multi-region, serverless), replace with Upstash Redis:
+ * ⚠️  SERVERLESS NOTE: This is safe for serverless (Vercel) because cleanup
+ * is lazy (checked on each access) rather than using setInterval which leaks
+ * across cold-start boundaries.
+ * 
+ * For multi-region scale, replace with Upstash Redis:
  *   import { Ratelimit } from "@upstash/ratelimit"
  *   import { Redis } from "@upstash/redis"
  */
@@ -15,16 +18,6 @@ interface RateLimitEntry {
 }
 
 const rateLimitMap = new Map<string, RateLimitEntry>();
-
-// Auto-cleanup stale entries every 5 minutes
-setInterval(() => {
-  const now = Date.now();
-  rateLimitMap.forEach((entry, key) => {
-    if (now > entry.resetTime) {
-      rateLimitMap.delete(key);
-    }
-  });
-}, 5 * 60 * 1000);
 
 export interface RateLimitConfig {
   maxRequests: number;   // Max requests allowed
@@ -42,6 +35,8 @@ export function checkRateLimit(
   config: RateLimitConfig
 ): RateLimitResult {
   const now = Date.now();
+
+  // Lazy cleanup: evict this key if its window has expired
   const existing = rateLimitMap.get(identifier);
 
   if (!existing || now > existing.resetTime) {

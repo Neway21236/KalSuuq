@@ -7,9 +7,17 @@ import { SignJWT, jwtVerify } from 'jose';
  * Tokens expire in 2 hours and can be revoked by rotating NEXTAUTH_SECRET.
  */
 
-const SECRET = new TextEncoder().encode(
-  process.env.NEXTAUTH_SECRET || 'kalsuq-fallback-secret-change-me'
-);
+const rawSecret = process.env.NEXTAUTH_SECRET;
+
+if (!rawSecret) {
+  throw new Error(
+    '[FATAL] NEXTAUTH_SECRET environment variable is not set. ' +
+    'Generate one with: openssl rand -base64 32'
+  );
+}
+
+const SECRET = new TextEncoder().encode(rawSecret);
+
 
 export interface TokenPayload {
   sub: string;       // user identifier (e.g. email or admin ID)

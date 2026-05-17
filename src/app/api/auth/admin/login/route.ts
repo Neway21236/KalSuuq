@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/db";
 import { signToken } from "@/lib/auth";
-
-// In a real production app, we'd use bcrypt for password hashing
-// For this prototype launch, we use a controlled admin check
+import { compare } from "bcryptjs";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
   try {
@@ -16,16 +15,24 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Rate Limiting / Brute Force Prevention
-    const ip = req.headers.get("x-forwarded-for") || "unknown";
-    console.log(`[AUTH] Admin login attempt from IP: ${ip} for email: ${email}`);
+    // Brute-force protection: max 10 attempts per IP per 15 minutes
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    const rateCheck = checkRateLimit(`admin-login:${ip}`, { maxRequests: 10, windowMs: 15 * 60 * 1000 });
+    if (!rateCheck.allowed) {
+      return NextResponse.json(
+        { success: false, message: "Too many login attempts. Please try again later." },
+        { status: 429 }
+      );
+    }
 
     const user = await prisma.user.findUnique({
       where: { email },
     });
 
-    // In a real production app, use bcrypt.compare
-    if (user && user.password === password && user.role === 'ADMIN') {
+    // Constant-time comparison via bcrypt to prevent timing attacks
+    const isValidPassword = user ? await compare(password, user.password) : false;
+
+    if (user && isValidPassword && user.role === 'ADMIN') {
       const token = await signToken({
         sub: user.id,
         role: user.role,
@@ -48,6 +55,7 @@ export async function POST(req: NextRequest) {
       return response;
     }
 
+    // Generic error — don't reveal whether email exists
     return NextResponse.json(
       { success: false, message: "Invalid credentials" },
       { status: 401 }

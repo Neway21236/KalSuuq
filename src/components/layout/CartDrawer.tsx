@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { X, ShoppingBag, Minus, Plus } from 'lucide-react'
@@ -9,6 +9,20 @@ import { useLanguageStore } from '@/store/useLanguageStore'
 import { useCartStore } from '@/store/useCartStore'
 import { cn } from '@/lib/utils'
 import { useHasHydrated } from '@/hooks/useHasHydrated'
+
+// Module-level upsell cache — shared across renders, valid for 5 minutes
+interface Product {
+  id: string;
+  name: string;
+  slug: string;
+  price: number;
+  image: string;
+  inStock?: boolean;
+  stockQuantity?: number;
+}
+const UPSELL_CACHE_TTL = 5 * 60 * 1000;
+let upsellCache: { data: Product[]; timestamp: number } | null = null;
+
 
 export default function CartDrawer() {
   const hydrated = useHasHydrated()
@@ -24,33 +38,37 @@ export default function CartDrawer() {
   } = useCartStore()
   
   const [outOfStockItems, setOutOfStockItems] = useState<string[]>([])
-  interface Product {
-    id: string;
-    name: string;
-    slug: string;
-    price: number;
-    image: string;
-    inStock?: boolean;
-    stockQuantity?: number;
-  }
-
   const [upsellProducts, setUpsellProducts] = useState<Product[]>([])
+  const fetchingRef = useRef(false)
+
 
   useEffect(() => {
     const fetchUpsell = async () => {
+      // Use cache if it's still fresh
+      const now = Date.now();
+      if (upsellCache && now - upsellCache.timestamp < UPSELL_CACHE_TTL) {
+        const inCartIds = items.map(i => i.productId)
+        setUpsellProducts(upsellCache.data.filter(p => !inCartIds.includes(p.id)).slice(0, 3))
+        return;
+      }
+      if (fetchingRef.current) return;
+      fetchingRef.current = true;
       try {
         const res = await fetch('/api/products')
         const data = await res.json()
         if (data.success) {
-          // Get 3 random products that are NOT in the cart
+          upsellCache = { data: data.products, timestamp: Date.now() };
           const inCartIds = items.map(i => i.productId)
           const available = data.products.filter((p: Product) => !inCartIds.includes(p.id))
           setUpsellProducts(available.slice(0, 3))
         }
       } catch (err) {
         console.error("Upsell fetch failed", err)
+      } finally {
+        fetchingRef.current = false;
       }
     }
+
     const validateStock = async () => {
       if (items.length === 0) return
       try {
@@ -222,9 +240,6 @@ export default function CartDrawer() {
                                 <Plus size={18} />
                               </button>
                             </div>
-                            <span className="text-text-primary font-mono text-2xl font-bold tracking-tighter">
-                              ETB {(item.unitPrice * item.quantity).toLocaleString()}
-                            </span>
                           </div>
                         </div>
                       </motion.div>
