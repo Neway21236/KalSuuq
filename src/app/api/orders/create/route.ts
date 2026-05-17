@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!paymentMethod || !['chapa', 'cod'].includes(paymentMethod)) {
+    if (!paymentMethod || paymentMethod !== 'chapa') {
       return NextResponse.json(
         { success: false, message: "Valid payment method is required" },
         { status: 400 }
@@ -107,7 +107,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Add fees
-    secureServerTotal += (deliveryFee || 0) + (paymentMethod === 'cod' ? 100 : 0);
+    secureServerTotal += (deliveryFee || 0);
 
     // Save to production database via Prisma in an Atomic Transaction
     const order = await prisma.$transaction(async (tx: TxClient) => {

@@ -22,7 +22,7 @@ export default function CheckoutPage() {
   const [step, setStep] = useState(1)
   const [deliveryZone, setDeliveryZone] = useState<'addis' | 'nationwide'>('addis')
   const [deliveryType, setDeliveryType] = useState<'standard' | 'express'>('standard')
-  const [paymentMethod, setPaymentMethod] = useState<'chapa' | 'cod'>('chapa')
+  const [paymentMethod, setPaymentMethod] = useState<'chapa'>('chapa')
   const [isProcessing, setIsProcessing] = useState(false)
 
   // Form State
@@ -54,9 +54,8 @@ export default function CheckoutPage() {
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const deliveryFee = deliveryZone === 'addis' ? (deliveryType === 'express' ? 450 : 250) : 600
-  const codFee = paymentMethod === 'cod' ? 100 : 0
   const discount = referralCode ? getSubtotal() * 0.1 : 0
-  const total = getSubtotal() + deliveryFee + codFee - discount
+  const total = getSubtotal() + deliveryFee - discount
 
   const handlePlaceOrder = async () => {
     // Client-side Validation
@@ -92,15 +91,6 @@ export default function CheckoutPage() {
       const data = await res.json()
       if (data.success) {
         toast(language === 'en' ? `Order #${data.orderId} placed successfully!` : `ትዕዛዝ #${data.orderId} በተሳካ ሁኔታ ተቀብሏል!`, 'success')
-        
-        // Handle COD WhatsApp Redirect - FR-CHK-08
-        if (paymentMethod === 'cod') {
-          const itemList = items.map(i => `- ${i.name} (${i.size}, ${i.colour}) x${i.quantity}`).join('%0A')
-          const message = `Hello Kalsuq!%0A%0AI want to confirm my order%0A%0AOrder ID: ${data.orderId}%0AItems:%0A${itemList}%0ATotal: ETB ${total.toLocaleString()}%0ADelivery Address: ${address}%0A%0AThank you!`
-          window.location.href = `https://wa.me/251911223344?text=${message}` // Placeholder number
-          useCartStore.getState().clearCart()
-          return
-        }
 
         // Handle Chapa Redirect
         if (data.checkoutUrl) {
@@ -289,10 +279,6 @@ export default function CheckoutPage() {
                         <p className="font-bold text-text-primary mb-1">Pay with Chapa</p>
                         <p className="text-[10px] text-text-secondary uppercase tracking-widest">Telebirr, CBEBirr, Cards</p>
                       </button>
-                      <button onClick={() => setPaymentMethod('cod')} className={cn("p-8 border text-left transition-all", paymentMethod === 'cod' ? "border-accent bg-accent/5 ring-1 ring-accent/40" : "border-border-primary bg-surface-card")}>
-                        <p className="font-bold text-text-primary mb-1">Cash on Delivery</p>
-                        <p className="text-[10px] text-text-secondary uppercase tracking-widest">Addis Only · +100 ETB</p>
-                      </button>
                     </div>
                   </div>
                 </div>
@@ -331,7 +317,7 @@ export default function CheckoutPage() {
                     disabled={isProcessing}
                     className="flex-[2] bg-accent text-white dark:text-ink py-7 text-[10px] font-bold uppercase tracking-[0.4em] hover:bg-accent-hover shadow-2xl active:scale-95 transition-all"
                   >
-                    {isProcessing ? 'Processing...' : paymentMethod === 'chapa' ? 'Pay Now →' : 'Confirm via WhatsApp →'}
+                    {isProcessing ? 'Processing...' : 'Pay Now →'}
                   </button>
                 </div>
               </section>
@@ -415,12 +401,6 @@ export default function CheckoutPage() {
                   <span>{language === 'en' ? 'Delivery Fee' : 'የአቅርቦት ክፍያ'}</span>
                   <span className="font-mono text-base text-text-primary">ETB {deliveryFee.toLocaleString()}</span>
                 </div>
-                {paymentMethod === 'cod' && (
-                  <div className="flex justify-between text-[10px] text-accent uppercase tracking-[0.3em] font-bold">
-                    <span>{language === 'en' ? 'COD Processing' : 'እጅ በእጅ ክፍያ'}</span>
-                    <span className="font-mono text-base">ETB 100</span>
-                  </div>
-                )}
                 <div className="flex justify-between items-center pt-8 border-t border-border-primary">
                   <span className={cn(
                     "text-xs font-bold uppercase tracking-[0.4em] text-text-primary",
@@ -459,9 +439,7 @@ export default function CheckoutPage() {
                   >
                     {isProcessing 
                       ? (language === 'en' ? 'Processing...' : 'በማስኬድ ላይ...')
-                      : paymentMethod === 'chapa' 
-                        ? (language === 'en' ? "Complete Secure Payment →" : "በደህንነት ይክፈሉ →")
-                        : (language === 'en' ? "Confirm via WhatsApp →" : "በዋትስአፕ ያረጋግጡ →")}
+                      : (language === 'en' ? "Complete Secure Payment →" : "በደህንነት ይክፈሉ →")}
                   </button>
                 )}
                 
