@@ -123,7 +123,7 @@ export default function CartDrawer() {
             className="fixed inset-y-0 right-0 w-full md:w-[500px] bg-surface z-[110] flex flex-col border-l border-border-primary shadow-2xl transition-colors duration-300"
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-8 md:p-12 border-b border-border-primary bg-surface shadow-sm">
+            <div className="flex items-center justify-between p-6 md:p-8 border-b border-border-primary bg-surface shadow-sm">
               <div className="flex items-center space-x-6">
                 <h2 className={cn(
                   "font-display text-4xl text-text-primary tracking-tight font-bold",
@@ -141,7 +141,7 @@ export default function CartDrawer() {
             </div>
 
             {/* Items Area */}
-            <div className="flex-1 overflow-y-auto p-8 md:p-12 space-y-12 no-scrollbar bg-surface/50">
+            <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-12 no-scrollbar bg-surface/50">
               {items.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-center space-y-12 animate-in fade-in zoom-in-95 duration-700">
                   <div className="w-40 h-40 bg-surface-card border border-border-primary flex items-center justify-center text-accent/20 shadow-2xl relative overflow-hidden group">
@@ -202,6 +202,10 @@ export default function CartDrawer() {
                                   "text-xl text-text-primary font-bold tracking-tight leading-tight group-hover:text-accent transition-colors",
                                   language === 'am' && "font-ethiopic"
                                 )}>{item.name}</h3>
+                                <div className="text-sm font-mono font-bold text-text-secondary mt-1 flex items-center space-x-1">
+                                  <span>ETB</span>
+                                  <span>{item.unitPrice?.toLocaleString()}</span>
+                                </div>
                                 {outOfStockItems.includes(`${item.productId}-${item.size}-${item.colour}`) && (
                                   <p className="text-[10px] text-error font-bold uppercase tracking-widest animate-pulse">
                                     {language === 'en' ? 'Out of Stock' : 'ክምችት አልቋል'}
@@ -224,20 +228,20 @@ export default function CartDrawer() {
                               </span>
                             </div>
                           </div>
-                          <div className="flex justify-between items-center">
-                            <div className="flex items-center border border-border-primary h-14 bg-surface-card shadow-lg">
+                          <div className="flex justify-between items-center mt-auto">
+                            <div className="flex items-center border border-border-primary h-10 bg-surface-card shadow-sm">
                               <button 
                                 onClick={() => updateQuantity(item.productId, item.size, item.colour, item.quantity - 1)}
-                                className="px-5 text-text-secondary hover:text-accent transition-all active:scale-75"
+                                className="px-3 text-text-secondary hover:text-accent transition-all active:scale-75"
                               >
-                                <Minus size={18} />
+                                <Minus size={16} />
                               </button>
-                              <span className="px-8 text-base font-mono font-bold text-text-primary border-x border-border-primary h-full flex items-center">{item.quantity}</span>
+                              <span className="px-4 text-sm font-mono font-bold text-text-primary border-x border-border-primary h-full flex items-center">{item.quantity}</span>
                               <button 
                                 onClick={() => updateQuantity(item.productId, item.size, item.colour, item.quantity + 1)}
-                                className="px-5 text-text-secondary hover:text-accent transition-all active:scale-75"
+                                className="px-3 text-text-secondary hover:text-accent transition-all active:scale-75"
                               >
-                                <Plus size={18} />
+                                <Plus size={16} />
                               </button>
                             </div>
                           </div>
@@ -284,7 +288,7 @@ export default function CartDrawer() {
 
             {/* Footer */}
             {items.length > 0 && (
-              <div className="p-12 border-t border-border-primary space-y-10 bg-surface-card/50 backdrop-blur-2xl shadow-[0_-30px_60px_rgba(0,0,0,0.1)]">
+              <div className="p-6 md:p-8 border-t border-border-primary space-y-10 bg-surface-card/50 backdrop-blur-2xl shadow-[0_-30px_60px_rgba(0,0,0,0.1)]">
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
                     <span className={cn(
@@ -293,9 +297,10 @@ export default function CartDrawer() {
                     )}>
                       {language === 'en' ? 'Subtotal' : 'ድምር'}
                     </span>
-                    <span className="text-xl text-text-primary font-mono font-bold">
-                      ETB {getSubtotal().toLocaleString()}
-                    </span>
+                    <div className="text-xl text-text-primary font-mono font-bold flex items-baseline space-x-2">
+                      <span className="text-sm text-text-secondary">ETB</span>
+                      <span>{getSubtotal().toLocaleString()}</span>
+                    </div>
                   </div>
 
                   {referralCode && (
@@ -309,9 +314,10 @@ export default function CartDrawer() {
                           {language === 'en' ? 'Discount' : 'ቅናሽ'} ({referralCode})
                         </span>
                       </div>
-                      <span className="text-xl font-mono font-bold">
-                        - ETB {discount.toLocaleString()}
-                      </span>
+                      <div className="text-xl font-mono font-bold flex items-baseline space-x-2">
+                        <span className="text-sm">- ETB</span>
+                        <span>{discount.toLocaleString()}</span>
+                      </div>
                     </div>
                   )}
 
@@ -322,9 +328,10 @@ export default function CartDrawer() {
                     )}>
                       {language === 'en' ? 'Total' : 'ጠቅላላ'}
                     </span>
-                    <span className="text-4xl text-text-primary font-display font-bold tracking-tighter">
-                      ETB {finalTotal.toLocaleString()}
-                    </span>
+                    <div className="text-4xl text-text-primary font-display font-bold tracking-tighter flex items-baseline space-x-2">
+                      <span className="text-lg text-text-secondary tracking-normal">ETB</span>
+                      <span>{finalTotal.toLocaleString()}</span>
+                    </div>
                   </div>
                 </div>
                 <div className="space-y-6">
@@ -338,7 +345,7 @@ export default function CartDrawer() {
                       closeCart()
                     }}
                     className={cn(
-                      "block w-full bg-accent text-white dark:text-ink text-center py-7 text-[10px] font-bold tracking-[0.5em] uppercase transition-all hover:bg-accent-hover shadow-2xl active:scale-[0.98]",
+                      "block w-full bg-accent text-white dark:text-ink text-center py-5 text-xs font-bold tracking-widest uppercase transition-all hover:bg-accent-hover shadow-2xl active:scale-[0.98]",
                       outOfStockItems.length > 0 && "opacity-50 cursor-not-allowed grayscale",
                       language === 'am' && "font-ethiopic tracking-normal text-sm py-5"
                     )}
@@ -348,7 +355,7 @@ export default function CartDrawer() {
                   <button
                     onClick={closeCart}
                     className={cn(
-                      "block w-full text-center text-[10px] text-text-secondary hover:text-accent transition-all py-4 uppercase tracking-[0.4em] font-bold active:scale-95",
+                      "block w-full text-center text-xs text-text-secondary hover:text-accent transition-all py-4 uppercase tracking-widest font-bold active:scale-95 whitespace-nowrap",
                       language === 'am' && "font-ethiopic tracking-normal text-xs"
                     )}
                   >

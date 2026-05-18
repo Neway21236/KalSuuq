@@ -85,7 +85,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${cormorant.variable} ${dmSans.variable} ${dmMono.variable} ${notoEthiopic.variable} antialiased font-body bg-surface text-text-primary flex flex-col min-h-screen transition-colors duration-500 selection:bg-accent/30`}
+        className={`${cormorant.variable} ${dmSans.variable} ${dmMono.variable} ${notoEthiopic.variable} antialiased font-body bg-surface text-text-primary flex flex-col min-h-screen transition-colors duration-500 selection:bg-accent/30 overflow-x-hidden`}
       >
         <ThemeProvider
           attribute="class"
