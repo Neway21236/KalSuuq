@@ -30,7 +30,7 @@ export default function TrustStrip() {
   ]
  
   return (
-    <section className="bg-ink border-y border-border-primary py-24 md:py-32 overflow-hidden relative group">
+    <section className="bg-surface border-y border-border-primary py-24 md:py-32 overflow-hidden relative group transition-colors duration-300">
       <div className="container mx-auto px-4 relative z-10">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-12 md:gap-0">
           {stats.map((stat, idx) => (
@@ -41,7 +41,7 @@ export default function TrustStrip() {
                 idx < stats.length - 1 && "md:border-r"
               )}
             >
-              <span className="font-display text-4xl md:text-6xl text-white leading-none font-bold mb-6 tracking-tight">
+              <span className="font-display text-4xl md:text-6xl text-text-primary leading-none font-bold mb-6 tracking-tight">
                 {stat.number}
               </span>
               <span className={cn(
